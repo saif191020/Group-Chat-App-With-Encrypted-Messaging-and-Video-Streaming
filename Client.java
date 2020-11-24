@@ -30,9 +30,13 @@ class Client extends JFrame{
                  System.out.println("CLICKED");
                 JPanel p = addMessages(currentUser,msg.getText().toString());
 
-                chat.add(p);
+                chat.add(p,BorderLayout.NORTH);
+                //chat.revalidate();
+                JPanel newChat = new JPanel();
+                newChat.setLayout(new BorderLayout());
+                chat.add(newChat,BorderLayout.CENTER);
+                chat = newChat;
                 chat.revalidate();
-
                 msg.setText("");
             }
             
@@ -58,9 +62,10 @@ class Client extends JFrame{
         
         //CENTER
         add(scrollPane,BorderLayout.CENTER);
-        chat.setLayout(new BoxLayout(chat , BoxLayout.Y_AXIS));
+        // chat.setLayout(new BoxLayout(chat , BoxLayout.Y_AXIS));
         //scrollPane.setBorder(new EmptyBorder(10, 10, 10, 10));
-        //chat.setAlignmentY(Component.TOP_ALIGNMENT);
+        chat.setLayout(new BorderLayout());
+
         
       
         //SOUTH 
@@ -74,7 +79,7 @@ class Client extends JFrame{
 
     private JPanel addMessages(String user,String msg){
         FlowLayout layout = new FlowLayout();
-        if(user.equals(currentUser)){
+        if(!user.equals(currentUser)){
             layout.setAlignment(FlowLayout.RIGHT);
         }else{
             layout.setAlignment(FlowLayout.LEFT);
