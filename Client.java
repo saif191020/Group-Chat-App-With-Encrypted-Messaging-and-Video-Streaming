@@ -1,12 +1,19 @@
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-
+import java.net.*;
+import java.util.Scanner;
 
 //import javax.swing.event.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.awt.event.*;
 import java.awt.*;
-class Client extends JFrame{
 
+class Client extends JFrame {
+    final static String IP_ADDRESS_STRING = "localhost";
+    final static int PORT = 2001;
+    Socket s;
     /**
      *
      */
@@ -16,93 +23,141 @@ class Client extends JFrame{
     JTextField msg;
     JPanel chat;
     JScrollPane scrollPane;
-    String currentUser ="Client";
+    String currentUser = "Client";
 
     Client() {
+        super("Chat Window");
         setLayout(new BorderLayout());
         setUI();
         setSize(400, 550);
-		setVisible(true);
+        setVisible(true);
         setDefaultCloseOperation(3);
-         //TEMP FOR NOW WILL BE REMOVED
-        msg.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e) {
-                 System.out.println("CLICKED");
-                JPanel p = addMessages(currentUser,msg.getText().toString());
-
-                chat.add(p,BorderLayout.NORTH);
-                //chat.revalidate();
-                JPanel newChat = new JPanel();
-                newChat.setLayout(new BorderLayout());
-                chat.add(newChat,BorderLayout.CENTER);
-                chat = newChat;
-                chat.revalidate();
-                msg.setText("");
-            }
-            
-        });
         
+        // TEMP FOR NOW WILL BE REMOVED
+        listeners();
+
     }
 
+    private void listeners() {        
+        msg.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("CLICKED");
+                try {
+                    if(msg.getText() == null || msg.getText().toString().trim().length() ==0){}
+                    else{
+                        DataOutputStream dout = new DataOutputStream(s.getOutputStream());
+                        dout.writeUTF(currentUser + ":::" + msg.getText().toString());
+                        msg.setText("");
+                    }
+                } catch (IOException e1) {
 
+                    e1.printStackTrace();
+                }
+            }
+        });
+        addWindowListener(new WindowListener(){
+			public void windowDeactivated(WindowEvent we){}
+			public void windowDeiconified(WindowEvent we){}
+			public void windowIconified(WindowEvent we){}
+			public void windowOpened(WindowEvent we){}
+			public void windowActivated(WindowEvent we){}
+			public void windowClosed(WindowEvent we){}
+
+			public void windowClosing(WindowEvent we){
+				try{
+		 			DataOutputStream dout = new DataOutputStream(s.getOutputStream()); //sendign
+                     dout.writeUTF("END");
+		 		}catch(Exception e)
+		 		{
+		 			System.out.println(e);
+		 		}
+		 	}
+		 });
+    }
 
     private void setUI() {
-        groupName= new JLabel("GROUP NAME");
-        
+        // initila UI setup
+        groupName = new JLabel("GROUP NAME");
+
         send = new JButton("SEND");
         msg = new JTextField(25);
-        chat  = new JPanel();
+        chat = new JPanel();
         scrollPane = new JScrollPane(chat);
 
-        //NORTH
+        // NORTH
         JPanel top = new JPanel();
         top.setLayout(new FlowLayout(FlowLayout.CENTER));
         add(top, BorderLayout.NORTH);
         top.add(groupName);
-        
-        //CENTER
-        add(scrollPane,BorderLayout.CENTER);
+
+        // CENTER
+        add(scrollPane, BorderLayout.CENTER);
         // chat.setLayout(new BoxLayout(chat , BoxLayout.Y_AXIS));
-        //scrollPane.setBorder(new EmptyBorder(10, 10, 10, 10));
+        // scrollPane.setBorder(new EmptyBorder(10, 10, 10, 10));
         chat.setLayout(new BorderLayout());
 
-        
-      
-        //SOUTH 
+        // SOUTH
         JPanel p = new JPanel();
         p.setLayout(new BorderLayout());
         add(p, BorderLayout.SOUTH);
-        p.add(msg,BorderLayout.CENTER);
-        p.add(send,BorderLayout.EAST);
+        p.add(msg, BorderLayout.CENTER);
+        p.add(send, BorderLayout.EAST);
         p.setBorder(new EmptyBorder(10, 10, 10, 10));
     }
 
-    private JPanel addMessages(String user,String msg){
+    private void addMessages(String user, String msg) {
+        // Adds Msg in panel Format to add to a chat window
+        Color textColor, bgColor;
         FlowLayout layout = new FlowLayout();
-        if(!user.equals(currentUser)){
+        if (user.equals(currentUser)) {
             layout.setAlignment(FlowLayout.RIGHT);
-        }else{
+            textColor = new Color(255,255,255);
+            bgColor = new Color(0, 132, 255);
+        } else {
             layout.setAlignment(FlowLayout.LEFT);
+            textColor = new Color(0,0,0);
+            bgColor = new Color(241, 240, 240);
         }
         JPanel row = new JPanel();
         row.setLayout(layout);
-        JLabel content =new JLabel(msg);
-        JLabel sender =new JLabel(user+"                        ");
+        JLabel content = new JLabel(msg);
+        JLabel sender = new JLabel(user + "                        ");
         sender.setFont(new Font("Serif", Font.PLAIN, 10));
-        JLabel time =new JLabel("01:45");
-        JPanel message =new JPanel();
+        JLabel time = new JLabel("01:45"); //Change to Actual TIme 
+        JPanel message = new JPanel();
         message.setLayout(new BoxLayout(message, BoxLayout.Y_AXIS));
         message.setBorder(new EmptyBorder(10, 10, 10, 10));
         message.add(sender);
         message.add(content);
         message.add(time);
         row.add(message);
-        message.setBackground(Color.LIGHT_GRAY);
-        return row;
+        message.setBackground(bgColor);
+        sender.setForeground(textColor);
+        content.setForeground(textColor);
+        time.setForeground(textColor);
+        chat.add(row, BorderLayout.NORTH); // Adds msg to chat layout
+        // chat.revalidate();
+        JPanel newChat = new JPanel();
+        newChat.setLayout(new BorderLayout());
+        chat.add(newChat, BorderLayout.CENTER);
+        chat = newChat;
+        chat.revalidate();
     }
 
-
     public static void main(String[] args) {
-        new Client();
+        Client client = new Client();
+        Scanner scan = new Scanner(System.in);
+        client.currentUser = scan.nextLine();
+        try {
+            client.s = new Socket(IP_ADDRESS_STRING, PORT);
+            while (true) {
+                DataInputStream din = new DataInputStream(client.s.getInputStream());
+                String str[] = din.readUTF().split(":::");
+                client.addMessages(str[0], str[1]);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
