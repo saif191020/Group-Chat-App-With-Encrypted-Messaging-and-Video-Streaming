@@ -1,5 +1,6 @@
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
@@ -11,11 +12,17 @@ public class Server {
         clientList = new ArrayList<Socket>();
         int connectedClients = 0;
         ServerSocket ss;
+        Scanner scan = new Scanner(System.in);
+        System.out.println("Enter The Group Name");
+        String groupName = scan.nextLine();
+        scan.close();
         try {
             ss = new ServerSocket(PORT);
             System.out.println("Socket Created with Port No: 2001 and Listening ...");
             while (true) {
                 Socket client = ss.accept();
+                DataOutputStream dout = new DataOutputStream(client.getOutputStream());
+                dout.writeUTF(groupName);
                 connectedClients++;
                 System.out.println("Accecpted new Client into the Server ");
                 System.out.println("Total Number of Connected Client  :" + connectedClients);
