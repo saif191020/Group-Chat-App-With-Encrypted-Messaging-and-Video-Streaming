@@ -67,6 +67,7 @@ class Client extends JFrame {
 			public void windowClosing(WindowEvent we){
 				try{
 		 			DataOutputStream dout = new DataOutputStream(s.getOutputStream()); //sendign
+                     dout.writeUTF("GRP_INFO" + ":::" + currentUser+" left the Chat.");
                      dout.writeUTF("END");
 		 		}catch(Exception e)
 		 		{
@@ -110,25 +111,32 @@ class Client extends JFrame {
         // Adds Msg in panel Format to add to a chat window
         Color textColor, bgColor;
         FlowLayout layout = new FlowLayout();
-        if (user.equals(currentUser)) {
+        JPanel row = new JPanel();
+        JLabel content = new JLabel(msg);
+        JLabel sender = new JLabel(user + "                        ");
+        JLabel time = new JLabel(getTime()); //Change to Actual TIme 
+        JPanel message = new JPanel();
+
+        if(user.equals("GRP_INFO")){
+            time.setVisible(false);
+            sender.setVisible(false);
+            layout.setAlignment(FlowLayout.CENTER);
+            textColor = new Color(255,255,255);
+            bgColor = new Color(110, 103, 103);
+        }
+        else if (user.equals(currentUser)) {
             layout.setAlignment(FlowLayout.RIGHT);
             textColor = new Color(255,255,255);
             bgColor = new Color(0, 132, 255);
         } else {
             layout.setAlignment(FlowLayout.LEFT);
             textColor = new Color(0,0,0);
-            bgColor = new Color(202, 189, 199);
+            bgColor = new Color(197, 197, 197);
         }
 
-        JPanel row = new JPanel();
-        JLabel content = new JLabel(msg);
-        JLabel sender = new JLabel(user + "                        ");
-        JLabel time = new JLabel(getTime()); //Change to Actual TIme 
-        JPanel message = new JPanel();
-        
         row.setLayout(layout);
         message.setLayout(new BoxLayout(message, BoxLayout.Y_AXIS));
-        sender.setFont(new Font("Serif", Font.PLAIN, 10));
+        sender.setFont(new Font("Serif", Font.PLAIN, 12));
         message.setBorder(new EmptyBorder(10, 10, 10, 10));
         
         message.setBackground(bgColor);
@@ -166,6 +174,8 @@ class Client extends JFrame {
             DataInputStream din = new DataInputStream(client.s.getInputStream());
             String groupName =din.readUTF();
             client.groupName.setText(groupName);
+            DataOutputStream dout = new DataOutputStream(client.s.getOutputStream());
+            dout.writeUTF("GRP_INFO" + ":::" + client.currentUser+" joined the Chat.");
             while (true) {
                 String str[] = din.readUTF().split(":::");
                 client.addMessages(str[0], str[1]);
