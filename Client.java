@@ -2,6 +2,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.net.*;
 import java.util.Scanner;
+import java.text.SimpleDateFormat;  
+import java.util.Date;  
 
 //import javax.swing.event.*;
 import java.io.DataInputStream;
@@ -32,7 +34,6 @@ class Client extends JFrame {
         setSize(400, 550);
         setVisible(true);
         setDefaultCloseOperation(3);
-        
         // TEMP FOR NOW WILL BE REMOVED
         listeners();
 
@@ -116,27 +117,32 @@ class Client extends JFrame {
         } else {
             layout.setAlignment(FlowLayout.LEFT);
             textColor = new Color(0,0,0);
-            bgColor = new Color(241, 240, 240);
+            bgColor = new Color(202, 189, 199);
         }
+
         JPanel row = new JPanel();
-        row.setLayout(layout);
         JLabel content = new JLabel(msg);
         JLabel sender = new JLabel(user + "                        ");
-        sender.setFont(new Font("Serif", Font.PLAIN, 10));
-        JLabel time = new JLabel("01:45"); //Change to Actual TIme 
+        JLabel time = new JLabel(getTime()); //Change to Actual TIme 
         JPanel message = new JPanel();
+        
+        row.setLayout(layout);
         message.setLayout(new BoxLayout(message, BoxLayout.Y_AXIS));
+        sender.setFont(new Font("Serif", Font.PLAIN, 10));
         message.setBorder(new EmptyBorder(10, 10, 10, 10));
-        message.add(sender);
-        message.add(content);
-        message.add(time);
-        row.add(message);
+        
         message.setBackground(bgColor);
         sender.setForeground(textColor);
         content.setForeground(textColor);
         time.setForeground(textColor);
+        
+        message.add(sender);
+        message.add(content);
+        message.add(time);
+        row.add(message);
         chat.add(row, BorderLayout.NORTH); // Adds msg to chat layout
         // chat.revalidate();
+
         JPanel newChat = new JPanel();
         newChat.setLayout(new BorderLayout());
         chat.add(newChat, BorderLayout.CENTER);
@@ -144,14 +150,23 @@ class Client extends JFrame {
         chat.revalidate();
     }
 
+    private String getTime() {
+        Date date = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("hh:mm");
+        return formatter.format(date); 
+    }
+
     public static void main(String[] args) {
         Client client = new Client();
         Scanner scan = new Scanner(System.in);
         client.currentUser = scan.nextLine();
+        scan.close();
         try {
             client.s = new Socket(IP_ADDRESS_STRING, PORT);
+            DataInputStream din = new DataInputStream(client.s.getInputStream());
+            String groupName =din.readUTF();
+            client.groupName.setText(groupName);
             while (true) {
-                DataInputStream din = new DataInputStream(client.s.getInputStream());
                 String str[] = din.readUTF().split(":::");
                 client.addMessages(str[0], str[1]);
             }
