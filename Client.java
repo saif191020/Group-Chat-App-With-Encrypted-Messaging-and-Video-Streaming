@@ -2,8 +2,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.net.*;
 import java.util.Scanner;
-import java.text.SimpleDateFormat;  
-import java.util.Date;  
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 //import javax.swing.event.*;
 import java.io.DataInputStream;
@@ -13,8 +13,10 @@ import java.awt.event.*;
 import java.awt.*;
 
 class Client extends JFrame {
-    final static String IP_ADDRESS_STRING = "localhost";
-    final static int PORT = 2001;
+    static String IP_ADDRESS_STRING = "localhost";
+    static int PORT = 2001;
+    static String CURRENT_USER = "Client";
+    static boolean isSetupDone ;
     Socket s;
     /**
      *
@@ -25,7 +27,79 @@ class Client extends JFrame {
     JTextField msg;
     JPanel chat;
     JScrollPane scrollPane;
-    String currentUser = "Client";
+    static {
+        Client.isSetupDone =false;
+        JLabel nameLabel, ipLabel, portLabel;
+        JTextField nameTextField, ipTextField, portTextField;
+        JButton connect;
+        JFrame frame = new JFrame();
+        frame.setTitle("Set-UP");
+        nameLabel = new JLabel("         Name :");
+        ipLabel = new JLabel("IP Address :");
+        portLabel = new JLabel("             Port :");
+        nameTextField = new JTextField(15);
+        ipTextField = new JTextField(15);
+        portTextField = new JTextField(15);
+        connect = new JButton("Connect !");
+        ipTextField.setText("localhost");
+        portTextField.setText("2001");
+        Container contentPane = frame.getContentPane();
+        SpringLayout layout = new SpringLayout();
+        contentPane.setLayout(layout);
+        contentPane.add(nameLabel);
+        contentPane.add(nameTextField);
+        contentPane.add(ipLabel);
+        contentPane.add(ipTextField);
+        contentPane.add(portLabel);
+        contentPane.add(portTextField);
+        contentPane.add(connect);
+
+        layout.putConstraint(SpringLayout.WEST, nameLabel, 5, SpringLayout.WEST, contentPane);
+        layout.putConstraint(SpringLayout.NORTH, nameLabel, 5, SpringLayout.NORTH, contentPane);
+        layout.putConstraint(SpringLayout.WEST, nameTextField, 5, SpringLayout.EAST, nameLabel);
+        layout.putConstraint(SpringLayout.NORTH, nameTextField, 5, SpringLayout.NORTH, contentPane);
+
+        layout.putConstraint(SpringLayout.WEST, ipLabel, 5, SpringLayout.WEST, contentPane);
+        layout.putConstraint(SpringLayout.NORTH, ipLabel, 5, SpringLayout.SOUTH, nameTextField);
+        layout.putConstraint(SpringLayout.WEST, ipTextField, 5, SpringLayout.EAST, ipLabel);
+        layout.putConstraint(SpringLayout.NORTH, ipTextField, 5, SpringLayout.SOUTH, nameTextField);
+
+        layout.putConstraint(SpringLayout.WEST, portLabel, 5, SpringLayout.WEST, contentPane);
+        layout.putConstraint(SpringLayout.NORTH, portLabel, 5, SpringLayout.SOUTH, ipTextField);
+        layout.putConstraint(SpringLayout.WEST, portTextField, 5, SpringLayout.EAST, portLabel);
+        layout.putConstraint(SpringLayout.NORTH, portTextField, 5, SpringLayout.SOUTH, ipTextField);
+
+        layout.putConstraint(SpringLayout.WEST, connect, 5, SpringLayout.EAST, portLabel);
+        layout.putConstraint(SpringLayout.NORTH, connect, 5, SpringLayout.SOUTH, portTextField);
+
+        layout.putConstraint(SpringLayout.EAST, contentPane, 5, SpringLayout.EAST, portTextField);
+        layout.putConstraint(SpringLayout.SOUTH, contentPane, 5, SpringLayout.SOUTH, connect);
+        frame.pack();
+        frame.setVisible(true);
+        frame.setLocationRelativeTo(null);
+        frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        
+        connect.addActionListener(new ActionListener(){
+
+        
+            public void actionPerformed(ActionEvent e) {
+                if((nameTextField.getText().toString().isBlank() || ipTextField.getText().toString().isBlank()  || portTextField.getText().toString().isBlank() )){
+                        //Add msg
+                        System.out.println("cancel");
+
+                }else{
+                    System.out.println("Varifird ...");
+                    CURRENT_USER = nameTextField.getText().toString();
+                    IP_ADDRESS_STRING = ipTextField.getText().toString();
+                    PORT = Integer.parseInt(portTextField.getText().toString());
+                    Client.isSetupDone =true;
+                    frame.dispose();
+                }
+
+            }
+
+        });
+    }
 
     Client() {
         super("Chat Window");
@@ -39,15 +113,15 @@ class Client extends JFrame {
 
     }
 
-    private void listeners() {        
+    private void listeners() {
         msg.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 System.out.println("CLICKED");
                 try {
-                    if(msg.getText() == null || msg.getText().toString().trim().length() ==0){}
-                    else{
+                    if (msg.getText() == null || msg.getText().toString().trim().length() == 0) {
+                    } else {
                         DataOutputStream dout = new DataOutputStream(s.getOutputStream());
-                        dout.writeUTF(currentUser + ":::" + msg.getText().toString());
+                        dout.writeUTF(Client.CURRENT_USER + ":::" + msg.getText().toString());
                         msg.setText("");
                     }
                 } catch (IOException e1) {
@@ -56,25 +130,35 @@ class Client extends JFrame {
                 }
             }
         });
-        addWindowListener(new WindowListener(){
-			public void windowDeactivated(WindowEvent we){}
-			public void windowDeiconified(WindowEvent we){}
-			public void windowIconified(WindowEvent we){}
-			public void windowOpened(WindowEvent we){}
-			public void windowActivated(WindowEvent we){}
-			public void windowClosed(WindowEvent we){}
+        addWindowListener(new WindowListener() {
+            public void windowDeactivated(WindowEvent we) {
+            }
 
-			public void windowClosing(WindowEvent we){
-				try{
-		 			DataOutputStream dout = new DataOutputStream(s.getOutputStream()); //sendign
-                     dout.writeUTF("GRP_INFO" + ":::" + currentUser+" left the Chat.");
-                     dout.writeUTF("END");
-		 		}catch(Exception e)
-		 		{
-		 			System.out.println(e);
-		 		}
-		 	}
-		 });
+            public void windowDeiconified(WindowEvent we) {
+            }
+
+            public void windowIconified(WindowEvent we) {
+            }
+
+            public void windowOpened(WindowEvent we) {
+            }
+
+            public void windowActivated(WindowEvent we) {
+            }
+
+            public void windowClosed(WindowEvent we) {
+            }
+
+            public void windowClosing(WindowEvent we) {
+                try {
+                    DataOutputStream dout = new DataOutputStream(s.getOutputStream()); // sendign
+                    dout.writeUTF("GRP_INFO" + ":::" + Client.CURRENT_USER + " left the Chat.");
+                    dout.writeUTF("END");
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+        });
     }
 
     private void setUI() {
@@ -114,23 +198,22 @@ class Client extends JFrame {
         JPanel row = new JPanel();
         JLabel content = new JLabel(msg);
         JLabel sender = new JLabel(user + "                        ");
-        JLabel time = new JLabel(getTime()); //Change to Actual TIme 
+        JLabel time = new JLabel(getTime()); // Change to Actual TIme
         JPanel message = new JPanel();
 
-        if(user.equals("GRP_INFO")){
+        if (user.equals("GRP_INFO")) {
             time.setVisible(false);
             sender.setVisible(false);
             layout.setAlignment(FlowLayout.CENTER);
-            textColor = new Color(255,255,255);
+            textColor = new Color(255, 255, 255);
             bgColor = new Color(110, 103, 103);
-        }
-        else if (user.equals(currentUser)) {
+        } else if (user.equals(Client.CURRENT_USER)) {
             layout.setAlignment(FlowLayout.RIGHT);
-            textColor = new Color(255,255,255);
+            textColor = new Color(255, 255, 255);
             bgColor = new Color(0, 132, 255);
         } else {
             layout.setAlignment(FlowLayout.LEFT);
-            textColor = new Color(0,0,0);
+            textColor = new Color(0, 0, 0);
             bgColor = new Color(197, 197, 197);
         }
 
@@ -138,12 +221,12 @@ class Client extends JFrame {
         message.setLayout(new BoxLayout(message, BoxLayout.Y_AXIS));
         sender.setFont(new Font("Serif", Font.PLAIN, 12));
         message.setBorder(new EmptyBorder(10, 10, 10, 10));
-        
+
         message.setBackground(bgColor);
         sender.setForeground(textColor);
         content.setForeground(textColor);
         time.setForeground(textColor);
-        
+
         message.add(sender);
         message.add(content);
         message.add(time);
@@ -161,21 +244,28 @@ class Client extends JFrame {
     private String getTime() {
         Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("hh:mm");
-        return formatter.format(date); 
+        return formatter.format(date);
     }
 
     public static void main(String[] args) {
+
+        System.out.println("Start");
+        while (!Client.isSetupDone){
+            System.out.print("");
+        }
+            // Wait till u get all info
+        
         Client client = new Client();
-        Scanner scan = new Scanner(System.in);
-        client.currentUser = scan.nextLine();
-        scan.close();
+        //Scanner scan = new Scanner(System.in);
+        //Client.CURRENT_USER = scan.nextLine();
+        //scan.close();
         try {
             client.s = new Socket(IP_ADDRESS_STRING, PORT);
             DataInputStream din = new DataInputStream(client.s.getInputStream());
-            String groupName =din.readUTF();
+            String groupName = din.readUTF();
             client.groupName.setText(groupName);
             DataOutputStream dout = new DataOutputStream(client.s.getOutputStream());
-            dout.writeUTF("GRP_INFO" + ":::" + client.currentUser+" joined the Chat.");
+            dout.writeUTF("GRP_INFO" + ":::" + Client.CURRENT_USER + " joined the Chat.");
             while (true) {
                 String str[] = din.readUTF().split(":::");
                 client.addMessages(str[0], str[1]);
