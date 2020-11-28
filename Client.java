@@ -1,13 +1,17 @@
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+
+
+
 import java.net.*;
-import java.util.Scanner;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 //import javax.swing.event.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.awt.event.*;
 import java.awt.*;
@@ -16,19 +20,25 @@ class Client extends JFrame {
     static String IP_ADDRESS_STRING = "localhost";
     static int PORT = 2001;
     static String CURRENT_USER = "Client";
-    static boolean isSetupDone ;
+    static boolean isSetupDone;
     Socket s;
     /**
      *
      */
     private static final long serialVersionUID = 1L;
     JLabel groupName;
-    JButton send;
+    JButton send, fileSend, videoStream;
     JTextField msg;
     JPanel chat;
     JScrollPane scrollPane;
+    JFileChooser jfc;
+
     static {
-        Client.isSetupDone =false;
+        loginInterface();
+    }
+
+    private static void loginInterface() {
+        Client.isSetupDone = false;
         JLabel nameLabel, ipLabel, portLabel;
         JTextField nameTextField, ipTextField, portTextField;
         JButton connect;
@@ -78,21 +88,20 @@ class Client extends JFrame {
         frame.setVisible(true);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        
-        connect.addActionListener(new ActionListener(){
 
-        
+        connect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if((nameTextField.getText().toString().isBlank() || ipTextField.getText().toString().isBlank()  || portTextField.getText().toString().isBlank() )){
-                        //Add msg
-                        System.out.println("cancel");
+                if ((nameTextField.getText().toString().isBlank() || ipTextField.getText().toString().isBlank()
+                        || portTextField.getText().toString().isBlank())) {
+                    // Add msg
+                    System.out.println("cancel");
 
-                }else{
+                } else {
                     System.out.println("Varifird ...");
                     CURRENT_USER = nameTextField.getText().toString();
                     IP_ADDRESS_STRING = ipTextField.getText().toString();
                     PORT = Integer.parseInt(portTextField.getText().toString());
-                    Client.isSetupDone =true;
+                    Client.isSetupDone = true;
                     frame.dispose();
                 }
 
@@ -159,6 +168,27 @@ class Client extends JFrame {
                 }
             }
         });
+        fileSend.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                try {
+                    jfc.showOpenDialog(null);
+
+                    DataInputStream din = new DataInputStream(new FileInputStream(jfc.getSelectedFile()));
+                    byte b;
+                    String s1 = "FILE_TRANS:::";
+                    while ((b = (byte) din.read()) != -1) {
+                        s1 += (char) b;
+                    }
+                    din.close();
+                    DataOutputStream dout = new DataOutputStream(s.getOutputStream());
+                    dout.writeUTF(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
+                    System.out.println(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        });
     }
 
     private void setUI() {
@@ -166,9 +196,11 @@ class Client extends JFrame {
         groupName = new JLabel("GROUP NAME");
 
         send = new JButton("SEND");
+        fileSend = new JButton("File");
         msg = new JTextField(25);
         chat = new JPanel();
         scrollPane = new JScrollPane(chat);
+        jfc = new JFileChooser();
 
         // NORTH
         JPanel top = new JPanel();
@@ -183,12 +215,30 @@ class Client extends JFrame {
         chat.setLayout(new BorderLayout());
 
         // SOUTH
-        JPanel p = new JPanel();
-        p.setLayout(new BorderLayout());
-        add(p, BorderLayout.SOUTH);
-        p.add(msg, BorderLayout.CENTER);
-        p.add(send, BorderLayout.EAST);
-        p.setBorder(new EmptyBorder(10, 10, 10, 10));
+        JPanel p1 = new JPanel(new BorderLayout());
+        JPanel p2 = new JPanel(new BorderLayout());
+        add(p1, BorderLayout.SOUTH);
+        p1.add(p2, BorderLayout.CENTER);
+        p1.add(send, BorderLayout.EAST);
+        p1.setBorder(new EmptyBorder(10, 10, 10, 10));
+        p2.add(msg, BorderLayout.CENTER);
+        p2.add(fileSend, BorderLayout.EAST);
+    }
+
+    private void handleFileTransfer(String fileContent, String fileName, String sender) {
+        if (sender.equals(Client.CURRENT_USER)) {
+            addMessages("GRP_INFO", "You sent a File ");
+        } else {
+            try {
+                FileOutputStream fout = new FileOutputStream("FTP Recieved\\" + fileName);
+                fout.write(fileContent.getBytes());
+                fout.close();
+                addMessages("GRP_INFO", fileName + "recieved from " + sender);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void addMessages(String user, String msg) {
@@ -250,15 +300,15 @@ class Client extends JFrame {
     public static void main(String[] args) {
 
         System.out.println("Start");
-        while (!Client.isSetupDone){
+        while (!Client.isSetupDone) {
             System.out.print("");
         }
-            // Wait till u get all info
-        
+        // Wait till u get all info
+
         Client client = new Client();
-        //Scanner scan = new Scanner(System.in);
-        //Client.CURRENT_USER = scan.nextLine();
-        //scan.close();
+        // Scanner scan = new Scanner(System.in);
+        // Client.CURRENT_USER = scan.nextLine();
+        // scan.close();
         try {
             client.s = new Socket(IP_ADDRESS_STRING, PORT);
             DataInputStream din = new DataInputStream(client.s.getInputStream());
@@ -267,12 +317,17 @@ class Client extends JFrame {
             DataOutputStream dout = new DataOutputStream(client.s.getOutputStream());
             dout.writeUTF("GRP_INFO" + ":::" + Client.CURRENT_USER + " joined the Chat.");
             while (true) {
-                String str[] = din.readUTF().split(":::");
-                client.addMessages(str[0], str[1]);
+                String response = din.readUTF();
+                String[] str =response.split(":::");
+                if (str[0].equals("FILE_TRANS")) {
+                    client.handleFileTransfer(str[1], str[2], str[3]);
+                } else
+                    client.addMessages(str[0], str[1]);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 }
