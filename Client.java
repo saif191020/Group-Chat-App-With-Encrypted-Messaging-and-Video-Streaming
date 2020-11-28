@@ -233,7 +233,7 @@ class Client extends JFrame {
                 FileOutputStream fout = new FileOutputStream("FTP Recieved\\" + fileName);
                 fout.write(fileContent.getBytes());
                 fout.close();
-                addMessages("GRP_INFO", fileName + "recieved from " + sender);
+                addMessages("GRP_INFO", fileName + " recieved from " + sender);
 
             } catch (Exception e) {
                 e.printStackTrace();
