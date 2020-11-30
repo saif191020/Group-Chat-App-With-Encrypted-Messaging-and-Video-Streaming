@@ -108,9 +108,10 @@ class VideoStreamThread extends Thread {
 
     public void run() {
         try {
+            ImageIcon ic;
             ObjectInputStream oin = new ObjectInputStream(s.getInputStream());
             while (true) {
-                ImageIcon ic = (ImageIcon) oin.readObject();
+                ic = (ImageIcon) oin.readObject();
                 if (ic != null && ic.getDescription() != null && ic.getDescription().equals("END")) {
                     System.out.println("end recevied");
                     s.close();
@@ -125,11 +126,11 @@ class VideoStreamThread extends Thread {
                     }
                 }
             }
-            int i = Server.videoClientList.indexOf(s);
-            Server.videoClientList.remove(i);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        int i = Server.videoClientList.indexOf(s);
+        Server.videoClientList.remove(i);
     }
 }

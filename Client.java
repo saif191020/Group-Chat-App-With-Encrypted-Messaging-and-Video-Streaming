@@ -151,6 +151,9 @@ private void listeners() {
                     DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream()); // sendign
                     dout.writeUTF("GRP_INFO" + ":::" + Client.CURRENT_USER + " left the Chat.");
                     dout.writeUTF("END");
+                    ObjectOutputStream oout = new ObjectOutputStream(videoSocket.getOutputStream());
+                    oout.writeObject(new ImageIcon("images\\endImage.png","END"));
+                    
                 } catch (Exception e) {
                     System.out.println(e);
                 }
