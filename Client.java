@@ -1,11 +1,10 @@
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
-
-
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.awt.image.BufferedImage;
 
 //import javax.swing.event.*;
 import java.io.DataInputStream;
@@ -13,15 +12,20 @@ import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.awt.event.*;
 import java.awt.*;
+import com.github.sarxos.webcam.*;
 
 class Client extends JFrame {
     static String IP_ADDRESS_STRING = "localhost";
     static int PORT = 2001;
     static String CURRENT_USER = "Client";
     static boolean isSetupDone;
-    Socket s;
+    static boolean runCam;
+    Socket clientSocket;
+    static Socket videoSocket;
     /**
      *
      */
@@ -32,6 +36,7 @@ class Client extends JFrame {
     JPanel chat;
     JScrollPane scrollPane;
     JFileChooser jfc;
+    static JFrame videoFrame = new JFrame();
 
     static {
         loginInterface();
@@ -89,78 +94,61 @@ class Client extends JFrame {
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        connect.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if ((nameTextField.getText().toString().isBlank() || ipTextField.getText().toString().isBlank()
-                        || portTextField.getText().toString().isBlank())) {
-                    // Add msg
-                    System.out.println("cancel");
+        connect.addActionListener(e -> ConnectToServer(nameTextField, ipTextField, portTextField, frame));
+        nameTextField.addActionListener(e -> ConnectToServer(nameTextField, ipTextField, portTextField, frame));
 
-                } else {
-                    System.out.println("Varifird ...");
-                    CURRENT_USER = nameTextField.getText().toString();
-                    IP_ADDRESS_STRING = ipTextField.getText().toString();
-                    PORT = Integer.parseInt(portTextField.getText().toString());
-                    Client.isSetupDone = true;
-                    frame.dispose();
-                }
-
-            }
-
-        });
     }
 
-    Client() {
-        super("Chat Window");
-        setLayout(new BorderLayout());
-        setUI();
-        setSize(400, 550);
-        setVisible(true);
-        setDefaultCloseOperation(3);
+    private static void ConnectToServer(JTextField nameTextField, JTextField ipTextField, JTextField portTextField,
+        JFrame frame) {
+        if ((nameTextField.getText().toString().isBlank() || ipTextField.getText().toString().isBlank()
+            || portTextField.getText().toString().isBlank())) {
+            // Add msg
+            System.out.println("cancel");
+
+    } else {
+        System.out.println("Varifird ...");
+        CURRENT_USER = nameTextField.getText().toString();
+        IP_ADDRESS_STRING = ipTextField.getText().toString();
+        PORT = Integer.parseInt(portTextField.getText().toString());
+        Client.isSetupDone = true;
+        frame.dispose();
+    }
+}
+
+Client() {
+    super("Chat Window");
+    setLayout(new BorderLayout());
+    setUI();
+    setSize(400, 550);
+    setVisible(true);
+    setDefaultCloseOperation(3);
         // TEMP FOR NOW WILL BE REMOVED
-        listeners();
+    listeners();
 
-    }
+}
 
-    private void listeners() {
-        msg.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("CLICKED");
-                try {
-                    if (msg.getText() == null || msg.getText().toString().trim().length() == 0) {
-                    } else {
-                        DataOutputStream dout = new DataOutputStream(s.getOutputStream());
-                        dout.writeUTF(Client.CURRENT_USER + ":::" + msg.getText().toString());
-                        msg.setText("");
-                    }
-                } catch (IOException e1) {
-
-                    e1.printStackTrace();
+private void listeners() {
+    msg.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("CLICKED");
+            try {
+                if (msg.getText() == null || msg.getText().toString().trim().length() == 0) {
+                } else {
+                    DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
+                    dout.writeUTF(Client.CURRENT_USER + ":::" + msg.getText().toString());
+                    msg.setText("");
                 }
-            }
-        });
-        addWindowListener(new WindowListener() {
-            public void windowDeactivated(WindowEvent we) {
-            }
+            } catch (IOException e1) {
 
-            public void windowDeiconified(WindowEvent we) {
+                e1.printStackTrace();
             }
-
-            public void windowIconified(WindowEvent we) {
-            }
-
-            public void windowOpened(WindowEvent we) {
-            }
-
-            public void windowActivated(WindowEvent we) {
-            }
-
-            public void windowClosed(WindowEvent we) {
-            }
-
-            public void windowClosing(WindowEvent we) {
-                try {
-                    DataOutputStream dout = new DataOutputStream(s.getOutputStream()); // sendign
+        }
+    });
+    addWindowListener(new WindowAdapter() {
+        public void windowClosing(WindowEvent we) {
+            try {
+                    DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream()); // sendign
                     dout.writeUTF("GRP_INFO" + ":::" + Client.CURRENT_USER + " left the Chat.");
                     dout.writeUTF("END");
                 } catch (Exception e) {
@@ -168,87 +156,135 @@ class Client extends JFrame {
                 }
             }
         });
-        fileSend.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ae) {
-                try {
-                    jfc.showOpenDialog(null);
-
-                    DataInputStream din = new DataInputStream(new FileInputStream(jfc.getSelectedFile()));
-                    byte b;
-                    String s1 = "FILE_TRANS:::";
-                    while ((b = (byte) din.read()) != -1) {
-                        s1 += (char) b;
-                    }
-                    din.close();
-                    DataOutputStream dout = new DataOutputStream(s.getOutputStream());
-                    dout.writeUTF(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
-                    System.out.println(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-        });
-    }
-
-    private void setUI() {
-        // initila UI setup
-        groupName = new JLabel("GROUP NAME");
-
-        send = new JButton("SEND");
-        fileSend = new JButton("File");
-        msg = new JTextField(25);
-        chat = new JPanel();
-        scrollPane = new JScrollPane(chat);
-        jfc = new JFileChooser();
-
-        // NORTH
-        JPanel top = new JPanel();
-        top.setLayout(new FlowLayout(FlowLayout.CENTER));
-        add(top, BorderLayout.NORTH);
-        top.add(groupName);
-
-        // CENTER
-        add(scrollPane, BorderLayout.CENTER);
-        // chat.setLayout(new BoxLayout(chat , BoxLayout.Y_AXIS));
-        // scrollPane.setBorder(new EmptyBorder(10, 10, 10, 10));
-        chat.setLayout(new BorderLayout());
-
-        // SOUTH
-        JPanel p1 = new JPanel(new BorderLayout());
-        JPanel p2 = new JPanel(new BorderLayout());
-        add(p1, BorderLayout.SOUTH);
-        p1.add(p2, BorderLayout.CENTER);
-        p1.add(send, BorderLayout.EAST);
-        p1.setBorder(new EmptyBorder(10, 10, 10, 10));
-        p2.add(msg, BorderLayout.CENTER);
-        p2.add(fileSend, BorderLayout.EAST);
-    }
-
-    private void handleFileTransfer(String fileContent, String fileName, String sender) {
-        if (sender.equals(Client.CURRENT_USER)) {
-            addMessages("GRP_INFO", "You sent a File ");
-        } else {
+    fileSend.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent ae) {
             try {
-                FileOutputStream fout = new FileOutputStream("FTP Recieved\\" + fileName);
-                fout.write(fileContent.getBytes());
-                fout.close();
-                addMessages("GRP_INFO", fileName + " recieved from " + sender);
+                jfc.showOpenDialog(null);
 
+                DataInputStream din = new DataInputStream(new FileInputStream(jfc.getSelectedFile()));
+                byte b;
+                String s1 = "FILE_TRANS:::";
+                while ((b = (byte) din.read()) != -1) {
+                    s1 += (char) b;
+                }
+                din.close();
+                DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
+                dout.writeUTF(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
+                System.out.println(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-    }
 
-    private void addMessages(String user, String msg) {
+    });
+
+    videoStream.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+
+            Webcam cam = Webcam.getDefault();
+            Client.runCam =true;
+            try {
+                ImageIcon ic=null;
+                BufferedImage br=null;
+                ObjectOutputStream stream = new ObjectOutputStream(Client.videoSocket.getOutputStream());
+                cam.open();
+                new VideoOutstreamThread(ic, br, stream, cam).start();
+
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+            videoStreamStopUI();
+            
+
+        }
+    });
+}
+void videoStreamStopUI(){
+    JFrame stopFrame = new JFrame();
+    stopFrame.setTitle("Pack()");
+    stopFrame.setLayout(new FlowLayout());
+    JButton stopButton = new JButton("Stop");
+    stopFrame.add(stopButton);
+    stopFrame.pack(); // calling the pack() method
+    stopFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    stopFrame.setLocationRelativeTo(null);
+    stopFrame.setVisible(true);
+    stopButton.addActionListener(ae -> {
+        Client.runCam =false;
+        stopFrame.dispose();
+    });
+    stopFrame.addWindowListener(new WindowAdapter(){
+        public void windowClosing(WindowEvent we) {
+            Client.runCam =false;
+            stopFrame.dispose();
+        }
+        });
+
+}
+
+private void setUI() {
+        // initila UI setup
+    groupName = new JLabel("GROUP NAME");
+
+    send = new JButton("SEND");
+    fileSend = new JButton("File");
+    videoStream = new JButton("V");
+    msg = new JTextField(25);
+    chat = new JPanel();
+    scrollPane = new JScrollPane(chat);
+    jfc = new JFileChooser();
+
+        // NORTH
+    JPanel top = new JPanel();
+    top.setLayout(new FlowLayout(FlowLayout.CENTER));
+    add(top, BorderLayout.NORTH);
+    top.add(groupName);
+
+        // CENTER
+    add(scrollPane, BorderLayout.CENTER);
+        // chat.setLayout(new BoxLayout(chat , BoxLayout.Y_AXIS));
+        // scrollPane.setBorder(new EmptyBorder(10, 10, 10, 10));
+    chat.setLayout(new BorderLayout());
+
+        // SOUTH
+    JPanel p1 = new JPanel(new BorderLayout());
+    JPanel p2 = new JPanel(new BorderLayout());
+    JPanel p3 = new JPanel(new BorderLayout());
+    add(p1, BorderLayout.SOUTH);
+    p1.add(p2, BorderLayout.CENTER);
+    p1.add(send, BorderLayout.EAST);
+    p1.setBorder(new EmptyBorder(10, 10, 10, 10));
+    p2.add(p3, BorderLayout.CENTER);
+    p2.add(fileSend, BorderLayout.EAST);
+    p3.add(msg, BorderLayout.CENTER);
+    p3.add(videoStream, BorderLayout.EAST);
+
+}
+
+private void handleFileTransfer(String fileContent, String fileName, String sender) {
+    if (sender.equals(Client.CURRENT_USER)) {
+        addMessages("GRP_INFO", "You sent a File ");
+    } else {
+        try {
+            FileOutputStream fout = new FileOutputStream("FTP Recieved\\" + fileName);
+            fout.write(fileContent.getBytes());
+            fout.close();
+            addMessages("GRP_INFO", fileName + " recieved from " + sender);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+private void addMessages(String user, String msg) {
         // Adds Msg in panel Format to add to a chat window
-        Color textColor, bgColor;
-        FlowLayout layout = new FlowLayout();
-        JPanel row = new JPanel();
-        JLabel content = new JLabel(msg);
-        JLabel sender = new JLabel(user + "                        ");
-        JLabel time = new JLabel(getTime()); // Change to Actual TIme
+    Color textColor, bgColor;
+    FlowLayout layout = new FlowLayout();
+    JPanel row = new JPanel();
+    JLabel content = new JLabel(msg);
+    JLabel sender = new JLabel(user + "                        ");
+        JLabel time = new JLabel(getTime()); // Change to Actual Time
         JPanel message = new JPanel();
 
         if (user.equals("GRP_INFO")) {
@@ -310,24 +346,94 @@ class Client extends JFrame {
         // Client.CURRENT_USER = scan.nextLine();
         // scan.close();
         try {
-            client.s = new Socket(IP_ADDRESS_STRING, PORT);
-            DataInputStream din = new DataInputStream(client.s.getInputStream());
+            client.clientSocket = new Socket(IP_ADDRESS_STRING, PORT);
+            DataInputStream din = new DataInputStream(client.clientSocket.getInputStream());
             String groupName = din.readUTF();
             client.groupName.setText(groupName);
-            DataOutputStream dout = new DataOutputStream(client.s.getOutputStream());
+            new ClientVideoStreamThread().start();
+            DataOutputStream dout = new DataOutputStream(client.clientSocket.getOutputStream());
             dout.writeUTF("GRP_INFO" + ":::" + Client.CURRENT_USER + " joined the Chat.");
             while (true) {
                 String response = din.readUTF();
-                String[] str =response.split(":::");
+                String[] str = response.split(":::");
                 if (str[0].equals("FILE_TRANS")) {
                     client.handleFileTransfer(str[1], str[2], str[3]);
                 } else
-                    client.addMessages(str[0], str[1]);
+                client.addMessages(str[0], str[1]);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+}
 
+class ClientVideoStreamThread extends Thread {
+    Socket videoSocket;
+
+    public void run() {
+        try {
+            videoSocket = new Socket(Client.IP_ADDRESS_STRING, Client.PORT + 1);
+            Client.videoSocket = videoSocket;
+
+            JFrame videoFrame = Client.videoFrame;
+            ImageIcon ic;
+            JLabel videoFeed = new JLabel();
+            videoFrame.setLayout(null);
+            videoFeed.setBounds(25, 25, 325, 315);
+            videoFrame.add(videoFeed);
+            videoFrame.setVisible(false);
+            videoFrame.setSize(400, 400);
+            videoFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            videoFrame.addWindowListener(new WindowAdapter() {
+                public void windowClosing(WindowEvent e) {
+                    videoFrame.setVisible(false);
+                }
+            });
+            while (true) {
+                ObjectInputStream oin = new ObjectInputStream(videoSocket.getInputStream());
+                ic = (ImageIcon) oin.readObject();
+                videoFeed.setIcon(ic);
+                if (!videoFrame.isVisible())
+                    videoFrame.setVisible(true);
+                if (ic != null && ic.getDescription() != null && ic.getDescription().equals("END_VIDEO")){
+                    videoFrame.setVisible(false);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+class VideoOutstreamThread extends Thread {
+    ImageIcon ic;
+    BufferedImage br;
+    ObjectOutputStream stream;
+    Webcam cam;
+
+    VideoOutstreamThread(ImageIcon ic, BufferedImage br, ObjectOutputStream stream,Webcam cam) {
+        this.ic =ic;
+        this.br =br;
+        this.stream = stream;
+        this.cam = cam;
+    }
+    public void run(){
+        try{
+            while (Client.runCam) {
+                br = cam.getImage();
+                ic = new ImageIcon(br);
+                stream.writeObject(ic);
+                stream.flush();
+            }
+            ic = new ImageIcon("images\\endVideo.png","END_VIDEO");
+            stream.writeObject(ic);
+            stream.flush();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        
+        cam.close();
+    }
 }
