@@ -4,6 +4,8 @@ import java.util.Scanner;
 
 import javax.swing.ImageIcon;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.ObjectInputStream;
@@ -109,7 +111,7 @@ class VideoStreamThread extends Thread {
     public void run() {
         try {
             ImageIcon ic;
-            ObjectInputStream oin = new ObjectInputStream(s.getInputStream());
+            ObjectInputStream oin = new ObjectInputStream(new BufferedInputStream(s.getInputStream()));
             while (true) {
                 ic = (ImageIcon) oin.readObject();
                 if (ic != null && ic.getDescription() != null && ic.getDescription().equals("END")) {
@@ -120,9 +122,12 @@ class VideoStreamThread extends Thread {
 
                     for (Socket c : Server.videoClientList) {
                         //if(c==s) continue;
-                        ObjectOutputStream oout = new ObjectOutputStream(c.getOutputStream());
+                        ObjectOutputStream oout = new ObjectOutputStream(new BufferedOutputStream(c.getOutputStream()));
                         oout.writeObject(ic);
                         oout.flush();
+                    }
+                    if (ic != null && ic.getDescription() != null && ic.getDescription().equals("END_VIDEO")) {
+                        oin = new ObjectInputStream(new BufferedInputStream(s.getInputStream()));
                     }
                 }
             }

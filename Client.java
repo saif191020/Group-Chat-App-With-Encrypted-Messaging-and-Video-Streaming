@@ -5,7 +5,8 @@ import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.awt.image.BufferedImage;
-
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 //import javax.swing.event.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -151,7 +152,7 @@ private void listeners() {
                     DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream()); // sendign
                     dout.writeUTF("GRP_INFO" + ":::" + Client.CURRENT_USER + " left the Chat.");
                     dout.writeUTF("END");
-                    ObjectOutputStream oout = new ObjectOutputStream(videoSocket.getOutputStream());
+                    ObjectOutputStream oout = new ObjectOutputStream(new BufferedOutputStream(videoSocket.getOutputStream()));
                     oout.writeObject(new ImageIcon("images\\endImage.png","END"));
                     
                 } catch (Exception e) {
@@ -394,7 +395,7 @@ class ClientVideoStreamThread extends Thread {
                 }
             });
             while (true) {
-                ObjectInputStream oin = new ObjectInputStream(videoSocket.getInputStream());
+                ObjectInputStream oin = new ObjectInputStream(new BufferedInputStream((videoSocket.getInputStream())));
                 ic = (ImageIcon) oin.readObject();
                 videoFeed.setIcon(ic);
                 if (!videoFrame.isVisible())
