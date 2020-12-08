@@ -26,17 +26,19 @@ class Client extends JFrame {
     static String IP_ADDRESS_STRING = "localhost";
     static int PORT = 2000;
     static String CURRENT_USER = "Client";
+    static String PASSWORD = "1234"; //FOR TESTING PURPOSES
     static boolean isSetupDone;
     static boolean runCam;
     static Socket videoSocket;
     static Socket audioSocket;
     static JFrame videoFrame = new JFrame();
     static final int VIDEO_HEIGHT =320, VIDEO_WIDTH =240;
+    static Encryption enc = new Encryption();
+    static Decryption dec = new Decryption();
     /**
      *
      */
     private static final long serialVersionUID = 1L;
-
     Socket clientSocket;
     JLabel groupName;
     JButton send, fileSend, videoStream;
@@ -141,11 +143,12 @@ class Client extends JFrame {
                 try {
                     if (msg.getText() == null || msg.getText().toString().trim().length() == 0) {
                     } else {
-                        DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
-                        dout.writeUTF(Client.CURRENT_USER + ":::" + msg.getText().toString());
+                        String content =msg.getText().toString();
                         msg.setText("");
+                        DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
+                        dout.writeUTF(Client.CURRENT_USER + ":::" + Client.enc.encrypt(content,Client.PASSWORD)); //TODO:Encrypt here
                     }
-                } catch (IOException e1) {
+                } catch ( Exception e1) {
 
                     e1.printStackTrace();
                 }
@@ -371,7 +374,10 @@ class Client extends JFrame {
                 if (str[0].equals("FILE_TRANS")) {
                     client.handleFileTransfer(str[1], str[2], str[3]);
                 } else
-                    client.addMessages(str[0], str[1]);
+                    if(str[0].equals("GRP_INFO"))
+                        client.addMessages(str[0], str[1]);
+                    else
+                        client.addMessages(str[0], Client.dec.decrypt(str[1],Client.PASSWORD));// TODO: Decrypt here
             }
 
         } catch (Exception e) {
