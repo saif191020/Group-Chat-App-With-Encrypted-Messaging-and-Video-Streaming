@@ -1,4 +1,5 @@
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -181,13 +182,10 @@ class AudioStreamThread extends Thread{
             byte[] data = new byte[1024];
         while(true){
             int dsize = ois.read(data);
-            if(dsize == 1024 || dsize ==512) {
+            if(dsize == 1024) {
                 for(ObjectOutputStream oout : Server.audioClientList){
                     oout.write(data,0,dsize);
-                    if(dsize == 1024)
-                        oout.reset();
-                    else
-                        oout.flush();
+                    oout.reset();
                 }
             }else if(dsize == 512){
                 System.out.println("[ SERVER ] : dsize-"+dsize+" Client Stopped.");
@@ -195,12 +193,13 @@ class AudioStreamThread extends Thread{
             }
             
         }
+        }catch(SocketException e){
+            System.out.println("Person Disconnected");
         }catch(Exception e){
             System.out.println(e);
-            int i = Server.audioClientList.indexOf(out);
-            Server.audioClientList.remove(i);
-            System.out.println("Person Disconnected");
         }
+        int i = Server.audioClientList.indexOf(out);
+        Server.audioClientList.remove(i);
 
     }
 

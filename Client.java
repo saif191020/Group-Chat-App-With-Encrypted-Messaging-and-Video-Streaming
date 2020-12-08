@@ -31,6 +31,7 @@ class Client extends JFrame {
     static Socket videoSocket;
     static Socket audioSocket;
     static JFrame videoFrame = new JFrame();
+    static final int VIDEO_HEIGHT =320, VIDEO_WIDTH =240;
     /**
      *
      */
@@ -105,15 +106,14 @@ class Client extends JFrame {
 
     }
 
-    private static void ConnectToServer(JTextField nameTextField, JTextField ipTextField, JTextField portTextField,
-            JFrame frame) {
+    private static void ConnectToServer(JTextField nameTextField, JTextField ipTextField, JTextField portTextField,JFrame frame) {
         if ((nameTextField.getText().toString().isBlank() || ipTextField.getText().toString().isBlank()
                 || portTextField.getText().toString().isBlank())) {
             // ADD MSG DIALOG
             System.out.println("cancel");
 
         } else {
-            System.out.println("Varifird ...");
+            System.out.println("Verifief  ...");
             CURRENT_USER = nameTextField.getText().toString();
             IP_ADDRESS_STRING = ipTextField.getText().toString();
             PORT = Integer.parseInt(portTextField.getText().toString());
@@ -179,7 +179,7 @@ class Client extends JFrame {
                     din.close();
                     DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
                     dout.writeUTF(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
-                    System.out.println(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
+                  //  System.out.println(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -192,6 +192,7 @@ class Client extends JFrame {
 
                 Webcam cam = Webcam.getDefault();
                 Client.runCam = true;
+                cam.setViewSize(new Dimension(Client.VIDEO_HEIGHT,Client.VIDEO_WIDTH));
                 try {
                     ImageIcon ic = null;
                     BufferedImage br = null;
@@ -390,12 +391,11 @@ class ClientVideoStreamThread extends Thread {
             JFrame videoFrame = Client.videoFrame;
             ImageIcon ic;
             JLabel videoFeed = new JLabel();
-            videoFrame.setLayout(null);
+            //videoFrame.setLayout(null);
             videoFrame.setTitle("Client :" + Client.CURRENT_USER);
-            videoFeed.setBounds(25, 25, 325, 315);
             videoFrame.add(videoFeed);
             videoFrame.setVisible(false);
-            videoFrame.setSize(400, 400);
+            videoFrame.setSize(Client.VIDEO_HEIGHT, Client.VIDEO_WIDTH);
             videoFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
             videoFrame.addWindowListener(new WindowAdapter() {
                 public void windowClosing(WindowEvent e) {
@@ -515,7 +515,6 @@ class AudioOutStreamThread extends Thread {
                 oos.reset();
             }
             System.out.println("[ Client ] : Attemtmting to stop ");
-            oos.write(data, 0, 512);
             oos.write(data, 0, 512);
             oos.flush();
 
