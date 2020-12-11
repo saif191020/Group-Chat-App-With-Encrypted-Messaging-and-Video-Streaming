@@ -15,7 +15,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.awt.event.*;
@@ -53,20 +52,25 @@ class Client extends JFrame {
 
     private static void loginInterface() {
         Client.isSetupDone = false;
-        JLabel nameLabel, ipLabel, portLabel;
-        JTextField nameTextField, ipTextField, portTextField;
+
+        JLabel nameLabel, ipLabel, portLabel,passwordLabel;
+        JTextField nameTextField, ipTextField, portTextField,passwordTextField;
         JButton connect;
         JFrame frame = new JFrame();
         frame.setTitle("Set-UP");
+        
         nameLabel = new JLabel("         Name :");
-        ipLabel = new JLabel("IP Address :");
+        ipLabel =   new JLabel("IP Address :");
+        passwordLabel = new JLabel(" Password  :");
         portLabel = new JLabel("             Port :");
         nameTextField = new JTextField(15);
         ipTextField = new JTextField(15);
         portTextField = new JTextField(15);
+        passwordTextField = new JTextField(15);
         connect = new JButton("Connect !");
         ipTextField.setText("localhost");
         portTextField.setText(PORT+"");
+        
         Container contentPane = frame.getContentPane();
         SpringLayout layout = new SpringLayout();
         contentPane.setLayout(layout);
@@ -76,26 +80,35 @@ class Client extends JFrame {
         contentPane.add(ipTextField);
         contentPane.add(portLabel);
         contentPane.add(portTextField);
+        contentPane.add(passwordLabel);
+        contentPane.add(passwordTextField);
         contentPane.add(connect);
-
+        
+        //Name
         layout.putConstraint(SpringLayout.WEST, nameLabel, 5, SpringLayout.WEST, contentPane);
         layout.putConstraint(SpringLayout.NORTH, nameLabel, 5, SpringLayout.NORTH, contentPane);
         layout.putConstraint(SpringLayout.WEST, nameTextField, 5, SpringLayout.EAST, nameLabel);
         layout.putConstraint(SpringLayout.NORTH, nameTextField, 5, SpringLayout.NORTH, contentPane);
-
+        //IP Address
         layout.putConstraint(SpringLayout.WEST, ipLabel, 5, SpringLayout.WEST, contentPane);
         layout.putConstraint(SpringLayout.NORTH, ipLabel, 5, SpringLayout.SOUTH, nameTextField);
         layout.putConstraint(SpringLayout.WEST, ipTextField, 5, SpringLayout.EAST, ipLabel);
         layout.putConstraint(SpringLayout.NORTH, ipTextField, 5, SpringLayout.SOUTH, nameTextField);
-
+        //Port 
         layout.putConstraint(SpringLayout.WEST, portLabel, 5, SpringLayout.WEST, contentPane);
         layout.putConstraint(SpringLayout.NORTH, portLabel, 5, SpringLayout.SOUTH, ipTextField);
         layout.putConstraint(SpringLayout.WEST, portTextField, 5, SpringLayout.EAST, portLabel);
         layout.putConstraint(SpringLayout.NORTH, portTextField, 5, SpringLayout.SOUTH, ipTextField);
-
+        //Password
+        layout.putConstraint(SpringLayout.WEST, passwordLabel, 5, SpringLayout.WEST, contentPane);
+        layout.putConstraint(SpringLayout.NORTH, passwordLabel, 5, SpringLayout.SOUTH, portTextField);
+        layout.putConstraint(SpringLayout.WEST, passwordTextField, 5, SpringLayout.EAST, passwordLabel);
+        layout.putConstraint(SpringLayout.NORTH, passwordTextField, 5, SpringLayout.SOUTH, portTextField);
+        //Connect Button
         layout.putConstraint(SpringLayout.WEST, connect, 5, SpringLayout.EAST, portLabel);
-        layout.putConstraint(SpringLayout.NORTH, connect, 5, SpringLayout.SOUTH, portTextField);
+        layout.putConstraint(SpringLayout.NORTH, connect, 5, SpringLayout.SOUTH, passwordTextField);
 
+        //Boundries
         layout.putConstraint(SpringLayout.EAST, contentPane, 5, SpringLayout.EAST, portTextField);
         layout.putConstraint(SpringLayout.SOUTH, contentPane, 5, SpringLayout.SOUTH, connect);
         frame.pack();
@@ -103,14 +116,16 @@ class Client extends JFrame {
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        connect.addActionListener(e -> ConnectToServer(nameTextField, ipTextField, portTextField, frame));
-        nameTextField.addActionListener(e -> ConnectToServer(nameTextField, ipTextField, portTextField, frame));
+        connect.addActionListener(e -> ConnectToServer(nameTextField, ipTextField, portTextField, passwordTextField, frame));
+        passwordTextField.addActionListener(e -> ConnectToServer(nameTextField, ipTextField, portTextField, passwordTextField, frame));
 
     }
 
-    private static void ConnectToServer(JTextField nameTextField, JTextField ipTextField, JTextField portTextField,JFrame frame) {
-        if ((nameTextField.getText().toString().isBlank() || ipTextField.getText().toString().isBlank()
-                || portTextField.getText().toString().isBlank())) {
+    private static void ConnectToServer(JTextField nameTextField, JTextField ipTextField, JTextField portTextField,JTextField passwordTextField,JFrame frame) {
+        if (nameTextField.getText().toString().isBlank() ||
+            ipTextField.getText().toString().isBlank()||
+            passwordTextField.getText().toString().isBlank()||
+            portTextField.getText().toString().isBlank()) {
             // ADD MSG DIALOG
             System.out.println("cancel");
 
@@ -119,6 +134,7 @@ class Client extends JFrame {
             CURRENT_USER = nameTextField.getText().toString();
             IP_ADDRESS_STRING = ipTextField.getText().toString();
             PORT = Integer.parseInt(portTextField.getText().toString());
+            PASSWORD =passwordTextField.getText().toString();
             Client.isSetupDone = true;
             frame.dispose();
         }
