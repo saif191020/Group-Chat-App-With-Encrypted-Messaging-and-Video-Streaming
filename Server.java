@@ -17,6 +17,7 @@ public class Server {
     static ArrayList<Socket> chatClientList;
     static ArrayList<Socket> videoClientList;
     static ArrayList<ObjectOutputStream> audioClientList;
+    static String ENCRYPTED_SECRET_STRING;
 
     public static void main(String[] args) {
         chatClientList = new ArrayList<Socket>();
@@ -42,8 +43,14 @@ public class Server {
                 DataOutputStream dout = new DataOutputStream(client.getOutputStream());
                 dout.writeUTF(groupName);
                 connectedClients++;
+                if(connectedClients == 1){
+                    dout.writeUTF("RequestSecretText");
+                    ENCRYPTED_SECRET_STRING = new DataInputStream(client.getInputStream()).readUTF();
+                }else{
+                    dout.writeUTF(ENCRYPTED_SECRET_STRING);
+                }
                 System.out.println("Accecpted new Client into the Server ");
-                System.out.println("Total Number of Connected Client  :" + connectedClients);
+                //System.out.println("Total Number of Connected Client  :" + connectedClients);
                 Server.chatClientList.add(client);
                 new ClientListenThread(client).start();
             }
@@ -74,11 +81,13 @@ class ClientListenThread extends Thread {
                     dout.writeUTF(str);
                 }
             }
-            int i = Server.chatClientList.indexOf(s);
-            Server.chatClientList.remove(i);
-        } catch (Exception e) {
+        } catch (SocketException e) {
+            System.out.println("Person Disconnected");
+        }catch(Exception e){
             e.printStackTrace();
         }
+        int i = Server.chatClientList.indexOf(s);
+        Server.chatClientList.remove(i);
     }
 }
 

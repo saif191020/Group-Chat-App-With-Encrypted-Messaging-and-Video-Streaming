@@ -380,9 +380,27 @@ class Client extends JFrame {
             DataInputStream din = new DataInputStream(client.clientSocket.getInputStream());
             String groupName = din.readUTF();
             client.groupName.setText(groupName);
+            DataOutputStream dout = new DataOutputStream(client.clientSocket.getOutputStream());
+
+            //verifycation
+            String request =din.readUTF();
+            if(request.startsWith("RequestSecretText")){
+                dout.writeUTF(enc.encrypt(Client.PASSWORD,Client.PASSWORD ));
+            }else{
+                try{
+                    String str =dec.decrypt(request, Client.PASSWORD);
+                    if(!str.equals(Client.PASSWORD)){
+                        //TODO:ADD msg Dialoge
+                        System.exit(0);
+                    }
+                }catch(Exception e){
+                    System.exit(0);
+                }
+            }
+
+
             new ClientVideoStreamThread().start();
             new ClientAudioStreamThread().start();
-            DataOutputStream dout = new DataOutputStream(client.clientSocket.getOutputStream());
             dout.writeUTF("GRP_INFO" + ":::" + Client.CURRENT_USER + " joined the Chat.");
             while (true) {
                 String response = din.readUTF();
