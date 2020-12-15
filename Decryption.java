@@ -33,9 +33,9 @@ public class Decryption {
         try {
             decryptedTextBytes = cipher.doFinal(encryptedTextBytes);
         } catch (IllegalBlockSizeException e) {
-            e.printStackTrace();
+            throw e;
         } catch (BadPaddingException e) {
-            e.printStackTrace();
+            throw e;
         }
 
         return new String(decryptedTextBytes);

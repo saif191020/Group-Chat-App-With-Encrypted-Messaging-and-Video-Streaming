@@ -1,3 +1,5 @@
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
@@ -393,11 +395,15 @@ class Client extends JFrame {
                 try {
                     String str = dec.decrypt(request, Client.PASSWORD);
                     if (!str.equals(Client.PASSWORD)) {
-                        // TODO:ADD msg Dialoge
+                        JOptionPane.showMessageDialog(client,"You Have entred Wrong Password","Invalid Password",JOptionPane.ERROR_MESSAGE); 
                         System.exit(0);
                     }
-                } catch (Exception e) {
+                } catch (IllegalBlockSizeException  | BadPaddingException e) {
+                    client.dispose();
+                    JOptionPane.showMessageDialog(client,"You Have entred Wrong Password","Invalid Password",JOptionPane.ERROR_MESSAGE); 
                     System.exit(0);
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
             }
 
