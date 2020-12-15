@@ -25,13 +25,13 @@ class Client extends JFrame {
     static String IP_ADDRESS_STRING = "localhost";
     static int PORT = 2000;
     static String CURRENT_USER = "Client";
-    static String PASSWORD = "1234"; //FOR TESTING PURPOSES
+    static String PASSWORD = "1234"; // FOR TESTING PURPOSES
     static boolean isSetupDone;
     static boolean runCam;
     static Socket videoSocket;
     static Socket audioSocket;
     static JFrame videoFrame = new JFrame();
-    static final int VIDEO_HEIGHT =320, VIDEO_WIDTH =240;
+    static final int VIDEO_HEIGHT = 320, VIDEO_WIDTH = 240;
     static Encryption enc = new Encryption();
     static Decryption dec = new Decryption();
     /**
@@ -53,14 +53,14 @@ class Client extends JFrame {
     private static void loginInterface() {
         Client.isSetupDone = false;
 
-        JLabel nameLabel, ipLabel, portLabel,passwordLabel;
-        JTextField nameTextField, ipTextField, portTextField,passwordTextField;
+        JLabel nameLabel, ipLabel, portLabel, passwordLabel;
+        JTextField nameTextField, ipTextField, portTextField, passwordTextField;
         JButton connect;
         JFrame frame = new JFrame();
         frame.setTitle("Set-UP");
-        
+
         nameLabel = new JLabel("         Name :");
-        ipLabel =   new JLabel("IP Address :");
+        ipLabel = new JLabel("IP Address :");
         passwordLabel = new JLabel(" Password  :");
         portLabel = new JLabel("             Port :");
         nameTextField = new JTextField(15);
@@ -69,8 +69,8 @@ class Client extends JFrame {
         passwordTextField = new JTextField(15);
         connect = new JButton("Connect !");
         ipTextField.setText("localhost");
-        portTextField.setText(PORT+"");
-        
+        portTextField.setText(PORT + "");
+
         Container contentPane = frame.getContentPane();
         SpringLayout layout = new SpringLayout();
         contentPane.setLayout(layout);
@@ -83,32 +83,32 @@ class Client extends JFrame {
         contentPane.add(passwordLabel);
         contentPane.add(passwordTextField);
         contentPane.add(connect);
-        
-        //Name
+
+        // Name
         layout.putConstraint(SpringLayout.WEST, nameLabel, 5, SpringLayout.WEST, contentPane);
         layout.putConstraint(SpringLayout.NORTH, nameLabel, 5, SpringLayout.NORTH, contentPane);
         layout.putConstraint(SpringLayout.WEST, nameTextField, 5, SpringLayout.EAST, nameLabel);
         layout.putConstraint(SpringLayout.NORTH, nameTextField, 5, SpringLayout.NORTH, contentPane);
-        //IP Address
+        // IP Address
         layout.putConstraint(SpringLayout.WEST, ipLabel, 5, SpringLayout.WEST, contentPane);
         layout.putConstraint(SpringLayout.NORTH, ipLabel, 5, SpringLayout.SOUTH, nameTextField);
         layout.putConstraint(SpringLayout.WEST, ipTextField, 5, SpringLayout.EAST, ipLabel);
         layout.putConstraint(SpringLayout.NORTH, ipTextField, 5, SpringLayout.SOUTH, nameTextField);
-        //Port 
+        // Port
         layout.putConstraint(SpringLayout.WEST, portLabel, 5, SpringLayout.WEST, contentPane);
         layout.putConstraint(SpringLayout.NORTH, portLabel, 5, SpringLayout.SOUTH, ipTextField);
         layout.putConstraint(SpringLayout.WEST, portTextField, 5, SpringLayout.EAST, portLabel);
         layout.putConstraint(SpringLayout.NORTH, portTextField, 5, SpringLayout.SOUTH, ipTextField);
-        //Password
+        // Password
         layout.putConstraint(SpringLayout.WEST, passwordLabel, 5, SpringLayout.WEST, contentPane);
         layout.putConstraint(SpringLayout.NORTH, passwordLabel, 5, SpringLayout.SOUTH, portTextField);
         layout.putConstraint(SpringLayout.WEST, passwordTextField, 5, SpringLayout.EAST, passwordLabel);
         layout.putConstraint(SpringLayout.NORTH, passwordTextField, 5, SpringLayout.SOUTH, portTextField);
-        //Connect Button
+        // Connect Button
         layout.putConstraint(SpringLayout.WEST, connect, 5, SpringLayout.EAST, portLabel);
         layout.putConstraint(SpringLayout.NORTH, connect, 5, SpringLayout.SOUTH, passwordTextField);
 
-        //Boundries
+        // Boundries
         layout.putConstraint(SpringLayout.EAST, contentPane, 5, SpringLayout.EAST, portTextField);
         layout.putConstraint(SpringLayout.SOUTH, contentPane, 5, SpringLayout.SOUTH, connect);
         frame.pack();
@@ -116,16 +116,17 @@ class Client extends JFrame {
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        connect.addActionListener(e -> ConnectToServer(nameTextField, ipTextField, portTextField, passwordTextField, frame));
-        passwordTextField.addActionListener(e -> ConnectToServer(nameTextField, ipTextField, portTextField, passwordTextField, frame));
+        connect.addActionListener(
+                e -> ConnectToServer(nameTextField, ipTextField, portTextField, passwordTextField, frame));
+        passwordTextField.addActionListener(
+                e -> ConnectToServer(nameTextField, ipTextField, portTextField, passwordTextField, frame));
 
     }
 
-    private static void ConnectToServer(JTextField nameTextField, JTextField ipTextField, JTextField portTextField,JTextField passwordTextField,JFrame frame) {
-        if (nameTextField.getText().toString().isBlank() ||
-            ipTextField.getText().toString().isBlank()||
-            passwordTextField.getText().toString().isBlank()||
-            portTextField.getText().toString().isBlank()) {
+    private static void ConnectToServer(JTextField nameTextField, JTextField ipTextField, JTextField portTextField,
+            JTextField passwordTextField, JFrame frame) {
+        if (nameTextField.getText().toString().isBlank() || ipTextField.getText().toString().isBlank()
+                || passwordTextField.getText().toString().isBlank() || portTextField.getText().toString().isBlank()) {
             // ADD MSG DIALOG
             System.out.println("cancel");
 
@@ -134,7 +135,7 @@ class Client extends JFrame {
             CURRENT_USER = nameTextField.getText().toString();
             IP_ADDRESS_STRING = ipTextField.getText().toString();
             PORT = Integer.parseInt(portTextField.getText().toString());
-            PASSWORD =passwordTextField.getText().toString();
+            PASSWORD = passwordTextField.getText().toString();
             Client.isSetupDone = true;
             frame.dispose();
         }
@@ -159,12 +160,12 @@ class Client extends JFrame {
                 try {
                     if (msg.getText() == null || msg.getText().toString().trim().length() == 0) {
                     } else {
-                        String content =msg.getText().toString();
+                        String content = msg.getText().toString();
                         msg.setText("");
                         DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
-                        dout.writeUTF(Client.CURRENT_USER + ":::" + Client.enc.encrypt(content,Client.PASSWORD)); //TODO:Encrypt here
+                        dout.writeUTF(Client.CURRENT_USER + ":::" + Client.enc.encrypt(content, Client.PASSWORD));
                     }
-                } catch ( Exception e1) {
+                } catch (Exception e1) {
 
                     e1.printStackTrace();
                 }
@@ -188,17 +189,19 @@ class Client extends JFrame {
             public void actionPerformed(ActionEvent ae) {
                 try {
                     jfc.showOpenDialog(null);
-
-                    DataInputStream din = new DataInputStream(new FileInputStream(jfc.getSelectedFile()));
-                    byte b;
-                    String s1 = "FILE_TRANS:::";
-                    while ((b = (byte) din.read()) != -1) {
-                        s1 += (char) b;
+                    if (jfc.getSelectedFile() != null) {
+                        DataInputStream din = new DataInputStream(new FileInputStream(jfc.getSelectedFile()));
+                        byte b;
+                        String s1 = "FILE_TRANS:::";
+                        while ((b = (byte) din.read()) != -1) {
+                            s1 += (char) b;
+                        }
+                        din.close();
+                        DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
+                        dout.writeUTF(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
+                        // System.out.println(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" +
+                        // Client.CURRENT_USER);
                     }
-                    din.close();
-                    DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
-                    dout.writeUTF(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
-                  //  System.out.println(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -211,7 +214,7 @@ class Client extends JFrame {
 
                 Webcam cam = Webcam.getDefault();
                 Client.runCam = true;
-                cam.setViewSize(new Dimension(Client.VIDEO_HEIGHT,Client.VIDEO_WIDTH));
+                cam.setViewSize(new Dimension(Client.VIDEO_HEIGHT, Client.VIDEO_WIDTH));
                 try {
                     ImageIcon ic = null;
                     BufferedImage br = null;
@@ -382,22 +385,21 @@ class Client extends JFrame {
             client.groupName.setText(groupName);
             DataOutputStream dout = new DataOutputStream(client.clientSocket.getOutputStream());
 
-            //verifycation
-            String request =din.readUTF();
-            if(request.startsWith("RequestSecretText")){
-                dout.writeUTF(enc.encrypt(Client.PASSWORD,Client.PASSWORD ));
-            }else{
-                try{
-                    String str =dec.decrypt(request, Client.PASSWORD);
-                    if(!str.equals(Client.PASSWORD)){
-                        //TODO:ADD msg Dialoge
+            // verifycation
+            String request = din.readUTF();
+            if (request.startsWith("RequestSecretText")) {
+                dout.writeUTF(enc.encrypt(Client.PASSWORD, Client.PASSWORD));
+            } else {
+                try {
+                    String str = dec.decrypt(request, Client.PASSWORD);
+                    if (!str.equals(Client.PASSWORD)) {
+                        // TODO:ADD msg Dialoge
                         System.exit(0);
                     }
-                }catch(Exception e){
+                } catch (Exception e) {
                     System.exit(0);
                 }
             }
-
 
             new ClientVideoStreamThread().start();
             new ClientAudioStreamThread().start();
@@ -407,11 +409,10 @@ class Client extends JFrame {
                 String[] str = response.split(":::");
                 if (str[0].equals("FILE_TRANS")) {
                     client.handleFileTransfer(str[1], str[2], str[3]);
-                } else
-                    if(str[0].equals("GRP_INFO"))
-                        client.addMessages(str[0], str[1]);
-                    else
-                        client.addMessages(str[0], Client.dec.decrypt(str[1],Client.PASSWORD));// TODO: Decrypt here
+                } else if (str[0].equals("GRP_INFO"))
+                    client.addMessages(str[0], str[1]);
+                else
+                    client.addMessages(str[0], Client.dec.decrypt(str[1], Client.PASSWORD));
             }
 
         } catch (Exception e) {
@@ -431,7 +432,7 @@ class ClientVideoStreamThread extends Thread {
             JFrame videoFrame = Client.videoFrame;
             ImageIcon ic;
             JLabel videoFeed = new JLabel();
-            //videoFrame.setLayout(null);
+            // videoFrame.setLayout(null);
             videoFrame.setTitle("Client :" + Client.CURRENT_USER);
             videoFrame.add(videoFeed);
             videoFrame.setVisible(false);
@@ -507,7 +508,7 @@ class ClientAudioStreamThread extends Thread {
             format = new AudioFormat(48000.0f, 16, 2, true, false);
             info = new DataLine.Info(SourceDataLine.class, format);
             data = new byte[1024];
-            
+
             speakers = (SourceDataLine) AudioSystem.getLine(info);
             speakers.open(format);
             speakers.start();
@@ -543,7 +544,7 @@ class AudioOutStreamThread extends Thread {
             microphone = AudioSystem.getTargetDataLine(format);
             info = new DataLine.Info(TargetDataLine.class, format);
             data = new byte[1024];
-            
+
             microphone = (TargetDataLine) AudioSystem.getLine(info);
             microphone.open(format);
             microphone.start();
