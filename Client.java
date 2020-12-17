@@ -261,9 +261,15 @@ class Client extends JFrame {
         // initila UI setup
         groupName = new JLabel("GROUP NAME");
 
-        send = new JButton("SEND");
-        fileSend = new JButton("File");
-        videoStream = new JButton("V");
+        send = new JButton();
+        fileSend = new JButton();
+        videoStream = new JButton();
+        videoStream.setIcon(new ImageIcon("images\\videoicon.png"));
+        send.setIcon(new ImageIcon("images\\sendicon.png"));
+        fileSend.setIcon(new ImageIcon("images\\ftpicon.png"));
+        fileSend.setToolTipText("File Transfer");
+        videoStream.setToolTipText("Video Stream");
+        send.setToolTipText("Send");
         msg = new JTextField(25);
         chat = new JPanel();
         scrollPane = new JScrollPane(chat);
@@ -320,7 +326,7 @@ class Client extends JFrame {
         JLabel content = new JLabel(msg);
         JLabel sender = new JLabel(user + "                        ");
         JLabel time = new JLabel(getTime()); // Change to Actual Time
-        JPanel message = new JPanel();
+        JPanel message = new RoundedPanel();
 
         if (user.equals("GRP_INFO")) {
             time.setVisible(false);
