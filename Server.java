@@ -43,14 +43,14 @@ public class Server {
                 DataOutputStream dout = new DataOutputStream(client.getOutputStream());
                 dout.writeUTF(groupName);
                 connectedClients++;
-                if(connectedClients == 1){
+                if (connectedClients == 1) {
                     dout.writeUTF("RequestSecretText");
                     ENCRYPTED_SECRET_STRING = new DataInputStream(client.getInputStream()).readUTF();
-                }else{
+                } else {
                     dout.writeUTF(ENCRYPTED_SECRET_STRING);
                 }
                 System.out.println("Accecpted new Client into the Server ");
-                //System.out.println("Total Number of Connected Client  :" + connectedClients);
+                // System.out.println("Total Number of Connected Client :" + connectedClients);
                 Server.chatClientList.add(client);
                 new ClientListenThread(client).start();
             }
@@ -75,15 +75,26 @@ class ClientListenThread extends Thread {
                 if (str.startsWith("END")) {
                     s.close();
                     break;
+                } else if (str.startsWith("FILE_TRANS")) {
+                    byte bytes[] = new byte[Integer.parseInt(str.split(":::")[2])];
+                    din.readFully(bytes, 0, bytes.length);
+                    for (Socket ss : Server.chatClientList) {
+                        if(ss == s) continue;
+                        DataOutputStream dout = new DataOutputStream(ss.getOutputStream());
+                        dout.writeUTF(str);
+                        dout.write(bytes,0,bytes.length);
+                        dout.flush();
+                    }
+                    continue;
                 }
-                for (Socket s : Server.chatClientList) { 
+                for (Socket s : Server.chatClientList) {
                     DataOutputStream dout = new DataOutputStream(s.getOutputStream());
                     dout.writeUTF(str);
                 }
             }
         } catch (SocketException e) {
             System.out.println("Person Disconnected");
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         int i = Server.chatClientList.indexOf(s);
@@ -134,7 +145,7 @@ class VideoStreamThread extends Thread {
                 } else {
 
                     for (Socket c : Server.videoClientList) {
-                        //if(c==s) continue;
+                        // if(c==s) continue;
                         ObjectOutputStream oout = new ObjectOutputStream(c.getOutputStream());
                         oout.writeObject(ic);
                         oout.flush();
@@ -153,19 +164,20 @@ class VideoStreamThread extends Thread {
     }
 }
 
-
-class AudioServer extends Thread{
+class AudioServer extends Thread {
     ServerSocket audioServerSocket;
-    AudioServer(ServerSocket ss){
+
+    AudioServer(ServerSocket ss) {
         audioServerSocket = ss;
     }
-    public void run(){
+
+    public void run() {
         try {
-            while(true){
+            while (true) {
                 Socket s = audioServerSocket.accept();
                 ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                 Server.audioClientList.add(out);
-                new AudioStreamThread(s,out).start();
+                new AudioStreamThread(s, out).start();
             }
 
         } catch (Exception e) {
@@ -175,36 +187,36 @@ class AudioServer extends Thread{
     }
 }
 
-class AudioStreamThread extends Thread{
+class AudioStreamThread extends Thread {
     Socket socket;
     private ObjectInputStream ois;
     private ObjectOutputStream out;
 
-    AudioStreamThread(Socket s, ObjectOutputStream ot){
-        socket =s;
-        out =ot;
+    AudioStreamThread(Socket s, ObjectOutputStream ot) {
+        socket = s;
+        out = ot;
     }
 
-    public void run(){
-        try{
+    public void run() {
+        try {
             ois = new ObjectInputStream(socket.getInputStream());
             byte[] data = new byte[1024];
-        while(true){
-            int dsize = ois.read(data);
-            if(dsize == 1024) {
-                for(ObjectOutputStream oout : Server.audioClientList){
-                    oout.write(data,0,dsize);
-                    oout.reset();
+            while (true) {
+                int dsize = ois.read(data);
+                if (dsize == 1024) {
+                    for (ObjectOutputStream oout : Server.audioClientList) {
+                        oout.write(data, 0, dsize);
+                        oout.reset();
+                    }
+                } else if (dsize == 512) {
+                    System.out.println("[ SERVER ] : dsize-" + dsize + " Client Stopped.");
+                    ois = new ObjectInputStream(socket.getInputStream());
                 }
-            }else if(dsize == 512){
-                System.out.println("[ SERVER ] : dsize-"+dsize+" Client Stopped.");
-                ois = new ObjectInputStream(socket.getInputStream());
+
             }
-            
-        }
-        }catch(SocketException e){
+        } catch (SocketException e) {
             System.out.println("Person Disconnected");
-        }catch(Exception e){
+        } catch (Exception e) {
             System.out.println(e);
         }
         int i = Server.audioClientList.indexOf(out);

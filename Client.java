@@ -15,6 +15,7 @@ import java.awt.image.BufferedImage;
 //import javax.swing.event.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
@@ -192,17 +193,34 @@ class Client extends JFrame {
                 try {
                     jfc.showOpenDialog(null);
                     if (jfc.getSelectedFile() != null) {
-                        DataInputStream din = new DataInputStream(new FileInputStream(jfc.getSelectedFile()));
-                        byte b;
-                        String s1 = "FILE_TRANS:::";
-                        while ((b = (byte) din.read()) != -1) {
-                            s1 += (char) b;
-                        }
-                        din.close();
-                        DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
-                        dout.writeUTF(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
-                        // System.out.println(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" +
-                        // Client.CURRENT_USER);
+
+                        /*
+                         * String s1 = "FILE_TRANS:::"; while ((b = (byte) din.read()) != -1) { s1 +=
+                         * (char) b; } din.close(); DataOutputStream dout = new
+                         * DataOutputStream(clientSocket.getOutputStream()); dout.writeUTF(s1 + ":::" +
+                         * jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
+                         * 
+                         * System.out.println(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" +
+                         * Client.CURRENT_USER);
+                         */
+                        // DataInputStream din = new DataInputStream(new
+                        // FileInputStream(jfc.getSelectedFile()));
+                        // DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
+                        File file = jfc.getSelectedFile();
+                        FileInputStream fis = new FileInputStream(file.getPath());
+
+                        int fileLen = (int) file.length();
+                        String transferINFO = "FILE_TRANS:::" + file.getName() + ":::" + fileLen + ":::"
+                                + Client.CURRENT_USER;
+                        DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
+                        dos.writeUTF(transferINFO);
+                        byte b[] = new byte[fileLen];
+                        fis.read(b, 0, b.length);
+                        fis.close();
+                        dos.write(b, 0, b.length);
+                        dos.flush();
+                        addMessages("GRP_INFO","You Send A File");
+
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -302,20 +320,21 @@ class Client extends JFrame {
 
     }
 
-    private void handleFileTransfer(String fileContent, String fileName, String sender) {
-        if (sender.equals(Client.CURRENT_USER)) {
-            addMessages("GRP_INFO", "You sent a File ");
-        } else {
-            try {
-                FileOutputStream fout = new FileOutputStream("FTP Recieved\\" + fileName);
-                fout.write(fileContent.getBytes());
-                fout.close();
-                addMessages("GRP_INFO", fileName + " recieved from " + sender);
+    private void handleFileTransfer(String fileName, String fileLen, String sender,DataInputStream din){
+        try {
+            int len = Integer.parseInt(fileLen);
+            FileOutputStream fout = new FileOutputStream("FTP Recieved\\" + fileName);
+            byte bytes[] = new byte[len];
+			din.readFully(bytes, 0, bytes.length);
+			fout.write(bytes,0,bytes.length);
+			fout.flush();
+			fout.close();
+            addMessages("GRP_INFO", fileName + " recieved from " + sender);
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
     private void addMessages(String user, String msg) {
@@ -401,14 +420,16 @@ class Client extends JFrame {
                 try {
                     String str = dec.decrypt(request, Client.PASSWORD);
                     if (!str.equals(Client.PASSWORD)) {
-                        JOptionPane.showMessageDialog(client,"You Have entred Wrong Password","Invalid Password",JOptionPane.ERROR_MESSAGE); 
+                        JOptionPane.showMessageDialog(client, "You Have entred Wrong Password", "Invalid Password",
+                                JOptionPane.ERROR_MESSAGE);
                         System.exit(0);
                     }
-                } catch (IllegalBlockSizeException  | BadPaddingException e) {
+                } catch (IllegalBlockSizeException | BadPaddingException e) {
                     client.dispose();
-                    JOptionPane.showMessageDialog(client,"You Have entred Wrong Password","Invalid Password",JOptionPane.ERROR_MESSAGE); 
+                    JOptionPane.showMessageDialog(client, "You Have entred Wrong Password", "Invalid Password",
+                            JOptionPane.ERROR_MESSAGE);
                     System.exit(0);
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -420,7 +441,7 @@ class Client extends JFrame {
                 String response = din.readUTF();
                 String[] str = response.split(":::");
                 if (str[0].equals("FILE_TRANS")) {
-                    client.handleFileTransfer(str[1], str[2], str[3]);
+                    client.handleFileTransfer(str[1], str[2], str[3],din);
                 } else if (str[0].equals("GRP_INFO"))
                     client.addMessages(str[0], str[1]);
                 else
