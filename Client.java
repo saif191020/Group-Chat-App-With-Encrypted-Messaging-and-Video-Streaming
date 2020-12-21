@@ -365,7 +365,9 @@ class Client extends JFrame {
 
         row.setLayout(layout);
         message.setLayout(new BoxLayout(message, BoxLayout.Y_AXIS));
-        sender.setFont(new Font("Serif", Font.PLAIN, 12));
+        sender.setFont(new Font("Helvitica", Font.BOLD, 11));
+        content.setFont(new Font("Helvitica", Font.PLAIN, 12));
+        time.setFont(new Font("Helvitica", Font.PLAIN, 10));
         message.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         message.setBackground(bgColor);
