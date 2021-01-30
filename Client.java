@@ -134,7 +134,7 @@ class Client extends JFrame {
             System.out.println("cancel");
 
         } else {
-            System.out.println("Verifief  ...");
+            //System.out.println("Verifief  ...");
             CURRENT_USER = nameTextField.getText().toString();
             IP_ADDRESS_STRING = ipTextField.getText().toString();
             PORT = Integer.parseInt(portTextField.getText().toString());
@@ -274,7 +274,7 @@ class Client extends JFrame {
         });
 
     }
-
+  
     private void setUI() {
         // initila UI setup
         groupName = new JLabel("GROUP NAME");
@@ -391,13 +391,13 @@ class Client extends JFrame {
 
     private String getTime() {
         Date date = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("hh:mm");
+        SimpleDateFormat formatter = new SimpleDateFormat("hh:mm a");
         return formatter.format(date);
     }
 
     public static void main(String[] args) {
 
-        System.out.println("Start");
+       // System.out.println("Start");
         while (!Client.isSetupDone) {
             System.out.print("");
         }
@@ -414,7 +414,7 @@ class Client extends JFrame {
             client.groupName.setText(groupName);
             DataOutputStream dout = new DataOutputStream(client.clientSocket.getOutputStream());
 
-            // verifycation
+            // Verification
             String request = din.readUTF();
             if (request.startsWith("RequestSecretText")) {
                 dout.writeUTF(enc.encrypt(Client.PASSWORD, Client.PASSWORD));
@@ -450,7 +450,11 @@ class Client extends JFrame {
                     client.addMessages(str[0], Client.dec.decrypt(str[1], Client.PASSWORD));
             }
 
-        } catch (Exception e) {
+        }catch(java.net.ConnectException e){
+            JOptionPane.showMessageDialog(client, "No Server", "Server Not Found",JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
+        }
+         catch (Exception e) {
             e.printStackTrace();
         }
     }
