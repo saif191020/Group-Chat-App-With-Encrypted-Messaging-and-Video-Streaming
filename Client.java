@@ -322,6 +322,8 @@ class Client extends JFrame {
 
     private void handleFileTransfer(String fileName, String fileLen, String sender,DataInputStream din){
         try {
+            File directory = new File("FTP Recieved");
+            if (! directory.exists()) directory.mkdir();
             int len = Integer.parseInt(fileLen);
             FileOutputStream fout = new FileOutputStream("FTP Recieved\\" + fileName);
             byte bytes[] = new byte[len];  
@@ -404,9 +406,7 @@ class Client extends JFrame {
         // Wait till u get all info
 
         Client client = new Client();
-        // Scanner scan = new Scanner(System.in);
-        // Client.CURRENT_USER = scan.nextLine();
-        // scan.close();
+
         try {
             client.clientSocket = new Socket(IP_ADDRESS_STRING, PORT);
             DataInputStream din = new DataInputStream(client.clientSocket.getInputStream());
