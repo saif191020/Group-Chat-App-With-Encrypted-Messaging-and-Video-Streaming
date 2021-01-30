@@ -151,7 +151,7 @@ class Client extends JFrame {
         setSize(400, 550);
         setVisible(true);
         setDefaultCloseOperation(3);
-        // TEMP FOR NOW WILL BE REMOVED
+        
         listeners();
 
     }
@@ -324,7 +324,7 @@ class Client extends JFrame {
         try {
             int len = Integer.parseInt(fileLen);
             FileOutputStream fout = new FileOutputStream("FTP Recieved\\" + fileName);
-            byte bytes[] = new byte[len];
+            byte bytes[] = new byte[len];  
 			din.readFully(bytes, 0, bytes.length);
 			fout.write(bytes,0,bytes.length);
 			fout.flush();
@@ -599,6 +599,5 @@ class AudioOutStreamThread extends Thread {
         }
         microphone.stop();
         microphone.close();
-
     }
 }

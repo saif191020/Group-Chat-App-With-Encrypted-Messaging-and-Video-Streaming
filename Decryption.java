@@ -11,8 +11,8 @@ import org.apache.commons.codec.binary.Base64;
 
 public class Decryption {
 
-    
-    public String decrypt(String encryptedText,String password) throws Exception {
+
+    public String decrypt(String encryptedText, String password) throws Exception {
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         //strip off the salt and iv
         ByteBuffer buffer = ByteBuffer.wrap(new Base64().decode(encryptedText));
@@ -25,7 +25,7 @@ public class Decryption {
         buffer.get(encryptedTextBytes);
         // Deriving the key
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), saltBytes, 65556, 256);
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), saltBytes, 1500, 256);//65556
         SecretKey secretKey = factory.generateSecret(spec);
         SecretKeySpec secret = new SecretKeySpec(secretKey.getEncoded(), "AES");
         cipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(ivBytes1));
