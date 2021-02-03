@@ -131,8 +131,10 @@ class Client extends JFrame {
             JPasswordField passwordTextField, JFrame frame) {
         if (nameTextField.getText().toString().isBlank() || ipTextField.getText().toString().isBlank()
                 || new String(passwordTextField.getPassword()).isBlank() || portTextField.getText().toString().isBlank()) {
-            // ADD MSG DIALOG
-            System.out.println("cancel");
+                    String tPass =((new String(passwordTextField.getPassword())).isBlank())?" Password Field":"";
+                    String tName =(nameTextField.getText().toString().isBlank())?"Name Field":"";
+                    JOptionPane.showMessageDialog(null, tName + tPass + " cannot be Empty", "Note",
+                    JOptionPane.INFORMATION_MESSAGE);
 
         } else {
             //System.out.println("Verifief  ...");
@@ -278,7 +280,7 @@ class Client extends JFrame {
   
     private void setUI() {
         // initila UI setup
-        groupName = new JLabel("GROUP NAME");
+        groupName = new JLabel("Connecting...");
 
         send = new JButton();
         fileSend = new JButton();
@@ -452,6 +454,7 @@ class Client extends JFrame {
             }
 
         }catch(java.net.ConnectException e){
+            client.groupName.setText("FAILED !");
             JOptionPane.showMessageDialog(client, "Server doesn't exist : Invalid IP Address", "Server Not Found",JOptionPane.ERROR_MESSAGE);
             System.exit(0);
         }
