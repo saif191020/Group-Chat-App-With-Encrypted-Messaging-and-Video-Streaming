@@ -57,7 +57,8 @@ class Client extends JFrame {
         Client.isSetupDone = false;
 
         JLabel nameLabel, ipLabel, portLabel, passwordLabel;
-        JTextField nameTextField, ipTextField, portTextField, passwordTextField;
+        JTextField nameTextField, ipTextField, portTextField;
+        JPasswordField passwordTextField;
         JButton connect;
         JFrame frame = new JFrame();
         frame.setTitle("Set-UP");
@@ -69,7 +70,7 @@ class Client extends JFrame {
         nameTextField = new JTextField(15);
         ipTextField = new JTextField(15);
         portTextField = new JTextField(15);
-        passwordTextField = new JTextField(15);
+        passwordTextField = new JPasswordField(15);
         connect = new JButton("Connect !");
         ipTextField.setText("localhost");
         portTextField.setText(PORT + "");
@@ -127,9 +128,9 @@ class Client extends JFrame {
     }
 
     private static void ConnectToServer(JTextField nameTextField, JTextField ipTextField, JTextField portTextField,
-            JTextField passwordTextField, JFrame frame) {
+            JPasswordField passwordTextField, JFrame frame) {
         if (nameTextField.getText().toString().isBlank() || ipTextField.getText().toString().isBlank()
-                || passwordTextField.getText().toString().isBlank() || portTextField.getText().toString().isBlank()) {
+                || new String(passwordTextField.getPassword()).isBlank() || portTextField.getText().toString().isBlank()) {
             // ADD MSG DIALOG
             System.out.println("cancel");
 
@@ -138,7 +139,7 @@ class Client extends JFrame {
             CURRENT_USER = nameTextField.getText().toString();
             IP_ADDRESS_STRING = ipTextField.getText().toString();
             PORT = Integer.parseInt(portTextField.getText().toString());
-            PASSWORD = passwordTextField.getText().toString();
+            PASSWORD = new String(passwordTextField.getPassword());
             Client.isSetupDone = true;
             frame.dispose();
         }
@@ -451,7 +452,7 @@ class Client extends JFrame {
             }
 
         }catch(java.net.ConnectException e){
-            JOptionPane.showMessageDialog(client, "No Server", "Server Not Found",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(client, "Server doesn't exist : Invalid IP Address", "Server Not Found",JOptionPane.ERROR_MESSAGE);
             System.exit(0);
         }
          catch (Exception e) {
