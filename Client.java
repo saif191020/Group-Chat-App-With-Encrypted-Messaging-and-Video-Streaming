@@ -130,14 +130,15 @@ class Client extends JFrame {
     private static void ConnectToServer(JTextField nameTextField, JTextField ipTextField, JTextField portTextField,
             JPasswordField passwordTextField, JFrame frame) {
         if (nameTextField.getText().toString().isBlank() || ipTextField.getText().toString().isBlank()
-                || new String(passwordTextField.getPassword()).isBlank() || portTextField.getText().toString().isBlank()) {
-                    String tPass =((new String(passwordTextField.getPassword())).isBlank())?" Password Field":"";
-                    String tName =(nameTextField.getText().toString().isBlank())?"Name Field":"";
-                    JOptionPane.showMessageDialog(null, tName + tPass + " cannot be Empty", "Note",
+                || new String(passwordTextField.getPassword()).isBlank()
+                || portTextField.getText().toString().isBlank()) {
+            String tPass = ((new String(passwordTextField.getPassword())).isBlank()) ? " Password Field" : "";
+            String tName = (nameTextField.getText().toString().isBlank()) ? "Name Field" : "";
+            JOptionPane.showMessageDialog(null, tName + tPass + " cannot be Empty", "Note",
                     JOptionPane.INFORMATION_MESSAGE);
 
         } else {
-            //System.out.println("Verifief  ...");
+            // System.out.println("Vrtified ...");
             CURRENT_USER = nameTextField.getText().toString();
             IP_ADDRESS_STRING = ipTextField.getText().toString();
             PORT = Integer.parseInt(portTextField.getText().toString());
@@ -154,7 +155,7 @@ class Client extends JFrame {
         setSize(400, 550);
         setVisible(true);
         setDefaultCloseOperation(3);
-        
+
         listeners();
 
     }
@@ -162,7 +163,6 @@ class Client extends JFrame {
     private void listeners() {
         msg.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                System.out.println("CLICKED");
                 try {
                     if (msg.getText() == null || msg.getText().toString().trim().length() == 0) {
                     } else {
@@ -198,20 +198,21 @@ class Client extends JFrame {
                     if (jfc.getSelectedFile() != null) {
 
                         /*
-                         * String s1 = "FILE_TRANS:::"; while ((b = (byte) din.read()) != -1) { s1 +=
-                         * (char) b; } din.close(); DataOutputStream dout = new
-                         * DataOutputStream(clientSocket.getOutputStream()); dout.writeUTF(s1 + ":::" +
-                         * jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
+                         * //To send Text Data Alone String s1 = "FILE_TRANS:::"; while ((b = (byte)
+                         * din.read()) != -1) { s1 += (char) b; } din.close(); DataOutputStream dout =
+                         * new DataOutputStream(clientSocket.getOutputStream()); dout.writeUTF(s1 +
+                         * ":::" + jfc.getSelectedFile().getName() + ":::" + Client.CURRENT_USER);
                          * 
                          * System.out.println(s1 + ":::" + jfc.getSelectedFile().getName() + ":::" +
                          * Client.CURRENT_USER);
                          */
-                        // DataInputStream din = new DataInputStream(new
-                        // FileInputStream(jfc.getSelectedFile()));
-                        // DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
+                        /*
+                         * DataInputStream din = new DataInputStream(new
+                         * FileInputStream(jfc.getSelectedFile())); DataOutputStream dout = new
+                         * DataOutputStream(clientSocket.getOutputStream());
+                         */
                         File file = jfc.getSelectedFile();
                         FileInputStream fis = new FileInputStream(file.getPath());
-
                         int fileLen = (int) file.length();
                         String transferINFO = "FILE_TRANS:::" + file.getName() + ":::" + fileLen + ":::"
                                 + Client.CURRENT_USER;
@@ -222,7 +223,7 @@ class Client extends JFrame {
                         fis.close();
                         dos.write(b, 0, b.length);
                         dos.flush();
-                        addMessages("GRP_INFO","You Send A File");
+                        addMessages("GRP_INFO", "You Send A File");
 
                     }
                 } catch (Exception e) {
@@ -277,7 +278,7 @@ class Client extends JFrame {
         });
 
     }
-  
+
     private void setUI() {
         // initila UI setup
         groupName = new JLabel("Connecting...");
@@ -323,17 +324,18 @@ class Client extends JFrame {
 
     }
 
-    private void handleFileTransfer(String fileName, String fileLen, String sender,DataInputStream din){
+    private void handleFileTransfer(String fileName, String fileLen, String sender, DataInputStream din) {
         try {
             File directory = new File("FTP Recieved");
-            if (! directory.exists()) directory.mkdir();
+            if (!directory.exists())
+                directory.mkdir();
             int len = Integer.parseInt(fileLen);
             FileOutputStream fout = new FileOutputStream("FTP Recieved\\" + fileName);
-            byte bytes[] = new byte[len];  
-			din.readFully(bytes, 0, bytes.length);
-			fout.write(bytes,0,bytes.length);
-			fout.flush();
-			fout.close();
+            byte bytes[] = new byte[len];
+            din.readFully(bytes, 0, bytes.length);
+            fout.write(bytes, 0, bytes.length);
+            fout.flush();
+            fout.close();
             addMessages("GRP_INFO", fileName + " recieved from " + sender);
 
         } catch (Exception e) {
@@ -392,6 +394,12 @@ class Client extends JFrame {
         chat.add(newChat, BorderLayout.CENTER);
         chat = newChat;
         chat.revalidate();
+
+        JScrollBar vertical = scrollPane.getVerticalScrollBar();
+        vertical.setValue(vertical.getMaximum());
+        JScrollBar vertical = scrollPane.getVerticalScrollBar();
+        vertical.setValue(vertical.getMaximum());
+
     }
 
     private String getTime() {
@@ -402,7 +410,7 @@ class Client extends JFrame {
 
     public static void main(String[] args) {
 
-       // System.out.println("Start");
+        // System.out.println("Start");
         while (!Client.isSetupDone) {
             System.out.print("");
         }
@@ -446,19 +454,19 @@ class Client extends JFrame {
                 String response = din.readUTF();
                 String[] str = response.split(":::");
                 if (str[0].equals("FILE_TRANS")) {
-                    client.handleFileTransfer(str[1], str[2], str[3],din);
+                    client.handleFileTransfer(str[1], str[2], str[3], din);
                 } else if (str[0].equals("GRP_INFO"))
                     client.addMessages(str[0], str[1]);
                 else
                     client.addMessages(str[0], Client.dec.decrypt(str[1], Client.PASSWORD));
             }
 
-        }catch(java.net.ConnectException e){
+        } catch (java.net.ConnectException e) {
             client.groupName.setText("FAILED !");
-            JOptionPane.showMessageDialog(client, "Server doesn't exist : Invalid IP Address", "Server Not Found",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(client, "Server doesn't exist : Invalid IP Address", "Server Not Found",
+                    JOptionPane.ERROR_MESSAGE);
             System.exit(0);
-        }
-         catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -598,7 +606,7 @@ class AudioOutStreamThread extends Thread {
                 oos.write(data, 0, dsize);
                 oos.reset();
             }
-            System.out.println("[ Client ] : Attemtmting to stop ");
+            System.out.println("[ Client ] : Attempting to stop ");
             oos.write(data, 0, 512);
             oos.flush();
 
