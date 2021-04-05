@@ -161,6 +161,22 @@ class Client extends JFrame {
     }
 
     private void listeners() {
+        send.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if (msg.getText() == null || msg.getText().toString().trim().length() == 0) {
+                    } else {
+                        String content = msg.getText().toString();
+                        msg.setText("");
+                        DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream());
+                        dout.writeUTF(Client.CURRENT_USER + ":::" + Client.enc.encrypt(content, Client.PASSWORD));
+                    }
+                } catch (Exception e1) {
+
+                    e1.printStackTrace();
+                }
+            }
+        });
         msg.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -397,8 +413,8 @@ class Client extends JFrame {
 
         JScrollBar vertical = scrollPane.getVerticalScrollBar();
         vertical.setValue(vertical.getMaximum());
-        JScrollBar vertical = scrollPane.getVerticalScrollBar();
-        vertical.setValue(vertical.getMaximum());
+        JScrollBar vertica = scrollPane.getVerticalScrollBar();
+        vertical.setValue(vertica.getMaximum());
 
     }
 
@@ -466,6 +482,8 @@ class Client extends JFrame {
             JOptionPane.showMessageDialog(client, "Server doesn't exist : Invalid IP Address", "Server Not Found",
                     JOptionPane.ERROR_MESSAGE);
             System.exit(0);
+        } catch (java.io.EOFException e) {
+            System.out.println("Ended");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -505,6 +523,8 @@ class ClientVideoStreamThread extends Thread {
                 }
             }
 
+        } catch (java.io.EOFException e) {
+            System.out.println("Ended");
         } catch (Exception e) {
             e.printStackTrace();
         }

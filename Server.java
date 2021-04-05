@@ -36,7 +36,7 @@ public class Server {
             audioServerSocket = new ServerSocket(PORT + 2);
             new VideoServer(videoServerSocket).start();
             new AudioServer(audioServerSocket).start();
-            System.out.println("Socket Created with Port No: 2000 and Listening ...");
+            System.out.println("Server Created with Port No: 2000 and Listening ...");
 
             while (true) {
                 Socket client = chatServerSocket.accept();
@@ -79,10 +79,11 @@ class ClientListenThread extends Thread {
                     byte bytes[] = new byte[Integer.parseInt(str.split(":::")[2])];
                     din.readFully(bytes, 0, bytes.length);
                     for (Socket ss : Server.chatClientList) {
-                        if(ss == s) continue;
+                        if (ss == s)
+                            continue;
                         DataOutputStream dout = new DataOutputStream(ss.getOutputStream());
                         dout.writeUTF(str);
-                        dout.write(bytes,0,bytes.length);
+                        dout.write(bytes, 0, bytes.length);
                         dout.flush();
                     }
                     continue;
