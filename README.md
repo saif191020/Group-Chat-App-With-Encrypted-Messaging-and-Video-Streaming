@@ -31,12 +31,11 @@ Run the Server.java first.
 Then Run as many Clients as you want. 
 
 When opening the first client you can enter any password but for the rest of the clients you need to enter the same password (ie: the first client sets the password for the server)
-| Login Screen | Chat Window|
-|---|---|
-<img alt="Light" src="Screenshots/login.png">|<img alt="Light" src="Screenshots/chat_window.png">
-<p align="center"><b>Multi Chat</b></p>| <p align="center"><b>Video Streaming</b></p>
-<img alt="Light" src="Screenshots/multiple_chat.png">|<img alt="Light" src="Screenshots/sample_from_video_stream.png">
-
+|Login Screen | Chat Window  |
+|:-----------:|:------------:|
+|<img alt="Light" src="Screenshots/login.png">|<img alt="Light" src="Screenshots/chat_window.png">|
+|<b>Multi Chat</b> |<b>Video Streaming</b>|
+|<img alt="Light" src="Screenshots/multiple_chat.png">|<img alt="Light" src="Screenshots/sample_from_video_stream.png">
 
 
 ## Built With
